@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: Apr 22, 2021 at 03:01 PM
+-- Generation Time: Apr 23, 2021 at 01:29 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -11,7 +11,7 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
 --
--- Database: rolli3oh_c2
+-- Database: `rolli3oh_c2`
 --
 
 DELIMITER $$
@@ -102,7 +102,8 @@ CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_check_if_user_can_crud` (IN 
 SELECT 
     C2_crud_project AS crudProject,
     C2_crud_member AS crudMember,
-    C2_crud_sprint AS crudSprint
+    C2_crud_sprint AS crudSprint,
+    C2_crud_goal AS crudGoal
 FROM 
     tbl_C2_project_member_type
 LEFT JOIN
@@ -113,6 +114,18 @@ WHERE
     tbl_C2_project_member_association.C2_project_id = project_id
 AND
     tbl_C2_project_member_association.C2_user_id = user_id$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_delete_goal` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `goal_id` VARCHAR(200), IN `goal_name` VARCHAR(200))  NO SQL
+BEGIN
+/*current user	*/
+	CALL sp_update_current_operation_user(user_id);
+
+    DELETE 
+    FROM 
+        tbl_C2_goal 
+    WHERE 
+        C2_goal_id = goal_id;
+END$$
 
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_delete_project` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `project_name` VARCHAR(200))  NO SQL
 BEGIN
@@ -193,6 +206,20 @@ SELECT
                             tbl_C2_project_member_type.C2_crud_tag AS crudTag
                         FROM 
                             tbl_C2_project_member_type$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_goals` (IN `project_id` VARCHAR(200))  NO SQL
+BEGIN
+    SELECT 
+        tbl_C2_goal.C2_goal_id AS goalId,
+        tbl_C2_goal.C2_goal_name AS goalName,
+        tbl_C2_goal.C2_goal_description AS goalDescription
+    FROM 
+        tbl_C2_goal
+    WHERE 
+        tbl_C2_goal.C2_project_id = project_id
+    ORDER BY
+        C2_goal_created_on DESC;
+END$$
 
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_measurement_criteria_for_project_sprint_userstory` (IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `user_story_id` VARCHAR(200))  NO SQL
 BEGIN
@@ -867,6 +894,18 @@ SELECT
                         WHERE 
                             C2_user_email = user_email$$
 
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_goal_already_created_for_same_project` (IN `goal_name` VARCHAR(200), IN `project_id` VARCHAR(200))  NO SQL
+BEGIN
+    SELECT 
+        tbl_C2_goal.C2_goal_id
+    FROM 
+        tbl_C2_goal
+    WHERE 
+        tbl_C2_goal.C2_goal_name = goal_name
+    AND 
+        tbl_C2_goal.C2_project_id = project_id;
+END$$
+
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_measurement_criteria_already_added_to_same_task_type` (IN `project_id` VARCHAR(200), IN `measurement_purpose` VARCHAR(400))  NO SQL
 SELECT 
     C2_task_type_id AS taskTypeId
@@ -1026,6 +1065,29 @@ INSERT INTO
                                 domain_status,
                                 now()
                             )$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_new_goal` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `goal_id` VARCHAR(200), IN `goal_name` VARCHAR(200), IN `goal_description` VARCHAR(200))  NO SQL
+BEGIN
+/*current user	*/
+	CALL sp_update_current_operation_user(user_id);
+INSERT INTO 
+    tbl_C2_goal 
+        (
+            C2_project_id, 
+            C2_goal_id, 
+            C2_goal_name,  
+            C2_goal_description,
+            C2_goal_created_on
+        ) 
+    values 
+        (
+            project_id,
+            goal_id,
+            goal_name,
+            goal_description,
+            now()
+        );
+END$$
 
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_new_project` (IN `user_id` VARCHAR(200), IN `project_name` VARCHAR(200), IN `project_id` VARCHAR(200), IN `project_description` VARCHAR(200))  NO SQL
 BEGIN
@@ -1627,6 +1689,20 @@ BEGIN
       SET C2_user_id = user_id;
 END$$
 
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_goal` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `goal_id` VARCHAR(200), IN `goal_name` VARCHAR(200), IN `goal_description` VARCHAR(200))  NO SQL
+BEGIN
+	/*current user	*/
+	CALL sp_update_current_operation_user(user_id);
+	UPDATE 
+		tbl_C2_goal
+	SET
+		C2_goal_name  = goal_name,
+		C2_goal_description = goal_description,
+		C2_goal_updated_on = now()
+	WHERE 
+		C2_goal_id = goal_id;
+END$$
+
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_password` (IN `user_password` VARCHAR(200), IN `user_email` VARCHAR(200))  NO SQL
 UPDATE 
                         tbl_C2_user
@@ -1783,208 +1859,209 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Table structure for table tbl_C2_activity
+-- Table structure for table `tbl_C2_activity`
 --
 
-CREATE TABLE tbl_C2_activity (
-  C2_activity_id varchar(200) DEFAULT NULL,
-  C2_project_id varchar(200) DEFAULT NULL,
-  C2_sprint_id varchar(200) DEFAULT NULL,
-  C2_assignee_user_id varchar(200) DEFAULT NULL,
-  C2_activity_measurement_purpose varchar(400) DEFAULT NULL,
-  C2_weight int(11) DEFAULT NULL,
-  C2_activity_key_completion_indicator varchar(1000) DEFAULT NULL,
-  C2_task_type_measurement_type varchar(10) DEFAULT NULL,
-  C2_criteria_poor_value int(11) DEFAULT NULL,
-  C2_criteria_improvement_value int(11) DEFAULT NULL,
-  C2_criteria_expectation_value int(11) DEFAULT NULL,
-  C2_criteria_exceed_value int(11) DEFAULT NULL,
-  C2_criteria_outstanding_value int(11) DEFAULT NULL,
-  C2_characteristics_higher_better int(11) DEFAULT '1',
-  C2_activity_achieved_fact int(11) DEFAULT NULL,
-  C2_assignee_comment varchar(1000) DEFAULT NULL,
-  C2_task_type_measurement_criteria_created_at datetime DEFAULT NULL,
-  C2_task_type_measurement_criteria_updated_at datetime DEFAULT NULL
+CREATE TABLE `tbl_C2_activity` (
+  `C2_activity_id` varchar(200) DEFAULT NULL,
+  `C2_project_id` varchar(200) DEFAULT NULL,
+  `C2_sprint_id` varchar(200) DEFAULT NULL,
+  `C2_assignee_user_id` varchar(200) DEFAULT NULL,
+  `C2_activity_measurement_purpose` varchar(400) DEFAULT NULL,
+  `C2_weight` int(11) DEFAULT NULL,
+  `C2_activity_key_completion_indicator` varchar(1000) DEFAULT NULL,
+  `C2_task_type_measurement_type` varchar(10) DEFAULT NULL,
+  `C2_criteria_poor_value` int(11) DEFAULT NULL,
+  `C2_criteria_improvement_value` int(11) DEFAULT NULL,
+  `C2_criteria_expectation_value` int(11) DEFAULT NULL,
+  `C2_criteria_exceed_value` int(11) DEFAULT NULL,
+  `C2_criteria_outstanding_value` int(11) DEFAULT NULL,
+  `C2_characteristics_higher_better` int(11) DEFAULT '1',
+  `C2_activity_achieved_fact` int(11) DEFAULT NULL,
+  `C2_assignee_comment` varchar(1000) DEFAULT NULL,
+  `C2_task_type_measurement_criteria_created_at` datetime DEFAULT NULL,
+  `C2_task_type_measurement_criteria_updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table tbl_C2_activity_review
+-- Table structure for table `tbl_C2_activity_review`
 --
 
-CREATE TABLE tbl_C2_activity_review (
-  C2_activity_review_id varchar(200) NOT NULL DEFAULT '',
-  C2_project_id varchar(200) DEFAULT NULL,
-  C2_activity_id varchar(200) NOT NULL DEFAULT '',
-  C2_reviewer_user_id varchar(200) NOT NULL DEFAULT '',
-  C2_achieved_result_value int(11) NOT NULL,
-  C2_reviewer_comment varchar(1000) NOT NULL,
-  C2_activity_review_created_on datetime DEFAULT NULL,
-  C2_activity_review_updated_on datetime DEFAULT NULL
+CREATE TABLE `tbl_C2_activity_review` (
+  `C2_activity_review_id` varchar(200) NOT NULL DEFAULT '',
+  `C2_project_id` varchar(200) DEFAULT NULL,
+  `C2_activity_id` varchar(200) NOT NULL DEFAULT '',
+  `C2_reviewer_user_id` varchar(200) NOT NULL DEFAULT '',
+  `C2_achieved_result_value` int(11) NOT NULL,
+  `C2_reviewer_comment` varchar(1000) NOT NULL,
+  `C2_activity_review_created_on` datetime DEFAULT NULL,
+  `C2_activity_review_updated_on` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table tbl_C2_current_operation_user
+-- Table structure for table `tbl_C2_current_operation_user`
 --
 
-CREATE TABLE tbl_C2_current_operation_user (
-  C2_user_id varchar(200) NOT NULL
+CREATE TABLE `tbl_C2_current_operation_user` (
+  `C2_user_id` varchar(200) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table tbl_C2_log_book
+-- Table structure for table `tbl_C2_goal`
 --
 
-CREATE TABLE tbl_C2_log_book (
-  C2_log_book_id int(20) UNSIGNED NOT NULL,
-  C2_project_id varchar(200) DEFAULT NULL,
-  C2_user_id varchar(200) DEFAULT NULL,
-  C2_log_operation varchar(200) DEFAULT NULL,
-  C2_log_module varchar(100) DEFAULT NULL,
-  C2_log_module_operation_id varchar(10000) DEFAULT NULL,
-  C2_log_on_field varchar(100) DEFAULT NULL,
-  C2_log_old_content varchar(10000) DEFAULT NULL,
-  C2_log_new_content varchar(10000) DEFAULT NULL,
-  C2_log_created_on datetime DEFAULT NULL
+CREATE TABLE `tbl_C2_goal` (
+  `C2_project_id` varchar(200) NOT NULL,
+  `C2_goal_id` varchar(200) NOT NULL DEFAULT '',
+  `C2_goal_name` varchar(200) NOT NULL DEFAULT '',
+  `C2_goal_description` varchar(400) NOT NULL DEFAULT '',
+  `C2_goal_created_on` varchar(200) NOT NULL DEFAULT '',
+  `C2_goal_updated_on` varchar(200) NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table tbl_C2_objective
+-- Table structure for table `tbl_C2_log_book`
 --
 
-CREATE TABLE tbl_C2_objective (
-  C2_project_id varchar(200) NOT NULL,
-  C2_objective_id varchar(200) NOT NULL DEFAULT '',
-  C2_objective_name varchar(200) NOT NULL DEFAULT '',
-  C2_objective_description varchar(400) NOT NULL DEFAULT '',
-  C2_objective_created_on varchar(200) NOT NULL DEFAULT '',
-  C2_objective_updated_on varchar(200) NOT NULL DEFAULT ''
+CREATE TABLE `tbl_C2_log_book` (
+  `C2_log_book_id` int(20) UNSIGNED NOT NULL,
+  `C2_project_id` varchar(200) DEFAULT NULL,
+  `C2_user_id` varchar(200) DEFAULT NULL,
+  `C2_log_operation` varchar(200) DEFAULT NULL,
+  `C2_log_module` varchar(100) DEFAULT NULL,
+  `C2_log_module_operation_id` varchar(10000) DEFAULT NULL,
+  `C2_log_on_field` varchar(100) DEFAULT NULL,
+  `C2_log_old_content` varchar(10000) DEFAULT NULL,
+  `C2_log_new_content` varchar(10000) DEFAULT NULL,
+  `C2_log_created_on` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table tbl_C2_project
+-- Table structure for table `tbl_C2_project`
 --
 
-CREATE TABLE tbl_C2_project (
-  C2_project_id varchar(200) NOT NULL,
-  C2_project_name varchar(200) NOT NULL,
-  C2_project_description varchar(400) NOT NULL,
-  C2_project_created_on datetime DEFAULT NULL,
-  C2_project_updated_on datetime DEFAULT NULL
+CREATE TABLE `tbl_C2_project` (
+  `C2_project_id` varchar(200) NOT NULL,
+  `C2_project_name` varchar(200) NOT NULL,
+  `C2_project_description` varchar(400) NOT NULL,
+  `C2_project_created_on` datetime DEFAULT NULL,
+  `C2_project_updated_on` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table tbl_C2_project_member_association
+-- Table structure for table `tbl_C2_project_member_association`
 --
 
-CREATE TABLE tbl_C2_project_member_association (
-  C2_user_id varchar(200) NOT NULL,
-  C2_project_id varchar(200) NOT NULL,
-  C2_project_user_type_id varchar(200) NOT NULL,
-  C2_project_member_created_on datetime DEFAULT NULL,
-  C2_project_member_updated_on datetime DEFAULT NULL
+CREATE TABLE `tbl_C2_project_member_association` (
+  `C2_user_id` varchar(200) NOT NULL,
+  `C2_project_id` varchar(200) NOT NULL,
+  `C2_project_user_type_id` varchar(200) NOT NULL,
+  `C2_project_member_created_on` datetime DEFAULT NULL,
+  `C2_project_member_updated_on` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table tbl_C2_project_member_type
+-- Table structure for table `tbl_C2_project_member_type`
 --
 
-CREATE TABLE tbl_C2_project_member_type (
-  C2_project_member_type_id varchar(200) NOT NULL,
-  C2_project_member_type_name varchar(200) NOT NULL,
-  C2_project_member_type_description varchar(400) NOT NULL,
-  C2_user_access_privilege_level int(11) DEFAULT NULL,
-  C2_crud_project tinyint(4) DEFAULT '1',
-  C2_crud_member tinyint(4) DEFAULT '1',
-  C2_crud_sprint tinyint(4) DEFAULT '1'
+CREATE TABLE `tbl_C2_project_member_type` (
+  `C2_project_member_type_id` varchar(200) NOT NULL,
+  `C2_project_member_type_name` varchar(200) NOT NULL,
+  `C2_project_member_type_description` varchar(400) NOT NULL,
+  `C2_user_access_privilege_level` int(11) DEFAULT NULL,
+  `C2_crud_project` tinyint(4) DEFAULT '1',
+  `C2_crud_member` tinyint(4) DEFAULT '1',
+  `C2_crud_sprint` tinyint(4) DEFAULT '1',
+  `C2_crud_goal` tinyint(4) DEFAULT '1'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table tbl_C2_project_settings
+-- Table structure for table `tbl_C2_project_settings`
 --
 
-CREATE TABLE tbl_C2_project_settings (
-  C2_project_settings_id int(11) NOT NULL,
-  C2_project_id varchar(200) NOT NULL,
-  C2_project_settings_created_on varchar(200) DEFAULT NULL,
-  C2_project_settings_update_on varchar(200) DEFAULT NULL
+CREATE TABLE `tbl_C2_project_settings` (
+  `C2_project_settings_id` int(11) NOT NULL,
+  `C2_project_id` varchar(200) NOT NULL,
+  `C2_project_settings_created_on` varchar(200) DEFAULT NULL,
+  `C2_project_settings_update_on` varchar(200) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table tbl_C2_sprint
+-- Table structure for table `tbl_C2_sprint`
 --
 
-CREATE TABLE tbl_C2_sprint (
-  C2_project_id varchar(200) NOT NULL,
-  C2_sprint_id varchar(200) NOT NULL,
-  C2_sprint_name varchar(200) NOT NULL,
-  C2_sprint_start_date varchar(200) NOT NULL,
-  C2_sprint_end_date varchar(200) NOT NULL,
-  C2_sprint_status varchar(200) NOT NULL,
-  C2_sprint_created_on datetime NOT NULL,
-  C2_sprint_updated_on datetime DEFAULT NULL
+CREATE TABLE `tbl_C2_sprint` (
+  `C2_project_id` varchar(200) NOT NULL,
+  `C2_sprint_id` varchar(200) NOT NULL,
+  `C2_sprint_name` varchar(200) NOT NULL,
+  `C2_sprint_start_date` varchar(200) NOT NULL,
+  `C2_sprint_end_date` varchar(200) NOT NULL,
+  `C2_sprint_status` varchar(200) NOT NULL,
+  `C2_sprint_created_on` datetime NOT NULL,
+  `C2_sprint_updated_on` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table tbl_C2_sp_log
+-- Table structure for table `tbl_C2_sp_log`
 --
 
-CREATE TABLE tbl_C2_sp_log (
-  C2_sp_log varchar(10000) NOT NULL DEFAULT ''
+CREATE TABLE `tbl_C2_sp_log` (
+  `C2_sp_log` varchar(10000) NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table tbl_C2_user
+-- Table structure for table `tbl_C2_user`
 --
 
-CREATE TABLE tbl_C2_user (
-  C2_user_id varchar(200) NOT NULL,
-  C2_user_first_name varchar(200) NOT NULL,
-  C2_user_last_name varchar(200) NOT NULL,
-  C2_user_password varchar(200) NOT NULL,
-  C2_user_email varchar(200) NOT NULL,
-  C2_user_security_answer_1 varchar(200) NOT NULL,
-  C2_user_security_answer_2 varchar(200) NOT NULL,
-  C2_user_status varchar(200) NOT NULL DEFAULT '',
-  C2_user_verification_code varchar(100) NOT NULL,
-  C2_user_password_reset_code varchar(100) NOT NULL DEFAULT 'none',
-  C2_user_created_at varchar(200) NOT NULL,
-  C2_user_updated_at varchar(200) NOT NULL DEFAULT ''
+CREATE TABLE `tbl_C2_user` (
+  `C2_user_id` varchar(200) NOT NULL,
+  `C2_user_first_name` varchar(200) NOT NULL,
+  `C2_user_last_name` varchar(200) NOT NULL,
+  `C2_user_password` varchar(200) NOT NULL,
+  `C2_user_email` varchar(200) NOT NULL,
+  `C2_user_security_answer_1` varchar(200) NOT NULL,
+  `C2_user_security_answer_2` varchar(200) NOT NULL,
+  `C2_user_status` varchar(200) NOT NULL DEFAULT '',
+  `C2_user_verification_code` varchar(100) NOT NULL,
+  `C2_user_password_reset_code` varchar(100) NOT NULL DEFAULT 'none',
+  `C2_user_created_at` varchar(200) NOT NULL,
+  `C2_user_updated_at` varchar(200) NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table tbl_C2_user_session
+-- Table structure for table `tbl_C2_user_session`
 --
 
-CREATE TABLE tbl_C2_user_session (
-  C2_session_user_id varchar(200) NOT NULL,
-  C2_session_user_platform varchar(200) DEFAULT NULL,
-  C2_session_user_ip varchar(200) DEFAULT NULL,
-  C2_session_user_login_type varchar(200) DEFAULT NULL,
-  C2_session_created_on datetime NOT NULL
+CREATE TABLE `tbl_C2_user_session` (
+  `C2_session_user_id` varchar(200) NOT NULL,
+  `C2_session_user_platform` varchar(200) DEFAULT NULL,
+  `C2_session_user_ip` varchar(200) DEFAULT NULL,
+  `C2_session_user_login_type` varchar(200) DEFAULT NULL,
+  `C2_session_created_on` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
@@ -1992,141 +2069,141 @@ CREATE TABLE tbl_C2_user_session (
 --
 
 --
--- Indexes for table tbl_C2_activity
+-- Indexes for table `tbl_C2_activity`
 --
-ALTER TABLE tbl_C2_activity
-  ADD KEY tbl_C2_task_type_measurement_criteria_fk_2 (C2_project_id),
-  ADD KEY tbl_C2_task_type_measurement_criteria_fk_3 (C2_activity_id),
-  ADD KEY tbl_C2_task_type_measurement_criteria_fk_4 (C2_sprint_id);
+ALTER TABLE `tbl_C2_activity`
+  ADD KEY `tbl_C2_task_type_measurement_criteria_fk_2` (`C2_project_id`),
+  ADD KEY `tbl_C2_task_type_measurement_criteria_fk_3` (`C2_activity_id`),
+  ADD KEY `tbl_C2_task_type_measurement_criteria_fk_4` (`C2_sprint_id`);
 
 --
--- Indexes for table tbl_C2_activity_review
+-- Indexes for table `tbl_C2_activity_review`
 --
-ALTER TABLE tbl_C2_activity_review
-  ADD PRIMARY KEY (C2_activity_review_id),
-  ADD KEY tbl_C2_task_review_fk_1 (C2_project_id),
-  ADD KEY tbl_C2_task_review_fk_3 (C2_activity_id),
-  ADD KEY tbl_C2_task_review_fk_4 (C2_reviewer_user_id);
+ALTER TABLE `tbl_C2_activity_review`
+  ADD PRIMARY KEY (`C2_activity_review_id`),
+  ADD KEY `tbl_C2_task_review_fk_1` (`C2_project_id`),
+  ADD KEY `tbl_C2_task_review_fk_3` (`C2_activity_id`),
+  ADD KEY `tbl_C2_task_review_fk_4` (`C2_reviewer_user_id`);
 
 --
--- Indexes for table tbl_C2_current_operation_user
+-- Indexes for table `tbl_C2_current_operation_user`
 --
-ALTER TABLE tbl_C2_current_operation_user
-  ADD PRIMARY KEY (C2_user_id);
+ALTER TABLE `tbl_C2_current_operation_user`
+  ADD PRIMARY KEY (`C2_user_id`);
 
 --
--- Indexes for table tbl_C2_log_book
+-- Indexes for table `tbl_C2_goal`
 --
-ALTER TABLE tbl_C2_log_book
-  ADD PRIMARY KEY (C2_log_book_id),
-  ADD KEY tbl_C2_log_book_fk_1 (C2_project_id);
+ALTER TABLE `tbl_C2_goal`
+  ADD PRIMARY KEY (`C2_goal_id`),
+  ADD KEY `tbl_C2_goal_fk_1` (`C2_project_id`);
 
 --
--- Indexes for table tbl_C2_objective
+-- Indexes for table `tbl_C2_log_book`
 --
-ALTER TABLE tbl_C2_objective
-  ADD PRIMARY KEY (C2_objective_id),
-  ADD KEY tbl_C2_user_story_fk_1 (C2_project_id);
+ALTER TABLE `tbl_C2_log_book`
+  ADD PRIMARY KEY (`C2_log_book_id`),
+  ADD KEY `tbl_C2_log_book_fk_1` (`C2_project_id`);
 
 --
--- Indexes for table tbl_C2_project
+-- Indexes for table `tbl_C2_project`
 --
-ALTER TABLE tbl_C2_project
-  ADD PRIMARY KEY (C2_project_id),
-  ADD KEY C2_project_name (C2_project_name);
+ALTER TABLE `tbl_C2_project`
+  ADD PRIMARY KEY (`C2_project_id`),
+  ADD KEY `C2_project_name` (`C2_project_name`);
 
 --
--- Indexes for table tbl_C2_project_member_association
+-- Indexes for table `tbl_C2_project_member_association`
 --
-ALTER TABLE tbl_C2_project_member_association
-  ADD KEY C2_project_id (C2_project_id),
-  ADD KEY tbl_C2_project_member_association_fk_2 (C2_user_id),
-  ADD KEY tbl_C2_project_member_association_fk_3 (C2_project_user_type_id);
+ALTER TABLE `tbl_C2_project_member_association`
+  ADD KEY `C2_project_id` (`C2_project_id`),
+  ADD KEY `tbl_C2_project_member_association_fk_2` (`C2_user_id`),
+  ADD KEY `tbl_C2_project_member_association_fk_3` (`C2_project_user_type_id`);
 
 --
--- Indexes for table tbl_C2_project_member_type
+-- Indexes for table `tbl_C2_project_member_type`
 --
-ALTER TABLE tbl_C2_project_member_type
-  ADD PRIMARY KEY (C2_project_member_type_id);
+ALTER TABLE `tbl_C2_project_member_type`
+  ADD PRIMARY KEY (`C2_project_member_type_id`);
 
 --
--- Indexes for table tbl_C2_project_settings
+-- Indexes for table `tbl_C2_project_settings`
 --
-ALTER TABLE tbl_C2_project_settings
-  ADD PRIMARY KEY (C2_project_settings_id),
-  ADD KEY C2_project_id (C2_project_id);
+ALTER TABLE `tbl_C2_project_settings`
+  ADD PRIMARY KEY (`C2_project_settings_id`),
+  ADD KEY `C2_project_id` (`C2_project_id`);
 
 --
--- Indexes for table tbl_C2_sprint
+-- Indexes for table `tbl_C2_sprint`
 --
-ALTER TABLE tbl_C2_sprint
-  ADD PRIMARY KEY (C2_sprint_id),
-  ADD KEY C2_project_id (C2_project_id),
-  ADD KEY C2_sprint_start_date (C2_sprint_start_date),
-  ADD KEY C2_sprint_end_date (C2_sprint_end_date);
+ALTER TABLE `tbl_C2_sprint`
+  ADD PRIMARY KEY (`C2_sprint_id`),
+  ADD KEY `C2_project_id` (`C2_project_id`),
+  ADD KEY `C2_sprint_start_date` (`C2_sprint_start_date`),
+  ADD KEY `C2_sprint_end_date` (`C2_sprint_end_date`);
 
 --
--- Indexes for table tbl_C2_user
+-- Indexes for table `tbl_C2_user`
 --
-ALTER TABLE tbl_C2_user
-  ADD PRIMARY KEY (C2_user_id);
+ALTER TABLE `tbl_C2_user`
+  ADD PRIMARY KEY (`C2_user_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT for table tbl_C2_log_book
+-- AUTO_INCREMENT for table `tbl_C2_log_book`
 --
-ALTER TABLE tbl_C2_log_book
-  MODIFY C2_log_book_id int(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+ALTER TABLE `tbl_C2_log_book`
+  MODIFY `C2_log_book_id` int(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table tbl_C2_project_settings
+-- AUTO_INCREMENT for table `tbl_C2_project_settings`
 --
-ALTER TABLE tbl_C2_project_settings
-  MODIFY C2_project_settings_id int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `tbl_C2_project_settings`
+  MODIFY `C2_project_settings_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
 --
 
 --
--- Constraints for table tbl_C2_activity
+-- Constraints for table `tbl_C2_activity`
 --
-ALTER TABLE tbl_C2_activity
-  ADD CONSTRAINT tbl_C2_task_type_measurement_criteria_fk_2 FOREIGN KEY (C2_project_id) REFERENCES tbl_C2_project (C2_project_id),
-  ADD CONSTRAINT tbl_C2_task_type_measurement_criteria_fk_3 FOREIGN KEY (C2_activity_id) REFERENCES tbl_c2_objective (C2_objective_id),
-  ADD CONSTRAINT tbl_C2_task_type_measurement_criteria_fk_4 FOREIGN KEY (C2_sprint_id) REFERENCES tbl_C2_sprint (C2_sprint_id);
+ALTER TABLE `tbl_C2_activity`
+  ADD CONSTRAINT `tbl_C2_task_type_measurement_criteria_fk_2` FOREIGN KEY (`C2_project_id`) REFERENCES `tbl_C2_project` (`C2_project_id`),
+  ADD CONSTRAINT `tbl_C2_task_type_measurement_criteria_fk_3` FOREIGN KEY (`C2_activity_id`) REFERENCES `tbl_C2_user_story` (`C2_objective_id`),
+  ADD CONSTRAINT `tbl_C2_task_type_measurement_criteria_fk_4` FOREIGN KEY (`C2_sprint_id`) REFERENCES `tbl_C2_sprint` (`C2_sprint_id`);
 
 --
--- Constraints for table tbl_C2_log_book
+-- Constraints for table `tbl_C2_goal`
 --
-ALTER TABLE tbl_C2_log_book
-  ADD CONSTRAINT tbl_C2_log_book_fk_1 FOREIGN KEY (C2_project_id) REFERENCES tbl_C2_project (C2_project_id) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `tbl_C2_goal`
+  ADD CONSTRAINT `tbl_C2_goal_fk_1` FOREIGN KEY (`C2_project_id`) REFERENCES `tbl_C2_project` (`C2_project_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table tbl_C2_objective
+-- Constraints for table `tbl_C2_log_book`
 --
-ALTER TABLE tbl_C2_objective
-  ADD CONSTRAINT tbl_C2_user_story_fk_1 FOREIGN KEY (C2_project_id) REFERENCES tbl_C2_project (C2_project_id) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `tbl_C2_log_book`
+  ADD CONSTRAINT `tbl_C2_log_book_fk_1` FOREIGN KEY (`C2_project_id`) REFERENCES `tbl_C2_project` (`C2_project_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table tbl_C2_project_member_association
+-- Constraints for table `tbl_C2_project_member_association`
 --
-ALTER TABLE tbl_C2_project_member_association
-  ADD CONSTRAINT tbl_C2_project_member_association_fk_1 FOREIGN KEY (C2_project_id) REFERENCES tbl_C2_project (C2_project_id) ON DELETE CASCADE,
-  ADD CONSTRAINT tbl_C2_project_member_association_fk_2 FOREIGN KEY (C2_user_id) REFERENCES tbl_C2_user (C2_user_id),
-  ADD CONSTRAINT tbl_C2_project_member_association_fk_3 FOREIGN KEY (C2_project_user_type_id) REFERENCES tbl_C2_project_member_type (C2_project_member_type_id);
+ALTER TABLE `tbl_C2_project_member_association`
+  ADD CONSTRAINT `tbl_C2_project_member_association_fk_1` FOREIGN KEY (`C2_project_id`) REFERENCES `tbl_C2_project` (`C2_project_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `tbl_C2_project_member_association_fk_2` FOREIGN KEY (`C2_user_id`) REFERENCES `tbl_C2_user` (`C2_user_id`),
+  ADD CONSTRAINT `tbl_C2_project_member_association_fk_3` FOREIGN KEY (`C2_project_user_type_id`) REFERENCES `tbl_C2_project_member_type` (`C2_project_member_type_id`);
 
 --
--- Constraints for table tbl_C2_project_settings
+-- Constraints for table `tbl_C2_project_settings`
 --
-ALTER TABLE tbl_C2_project_settings
-  ADD CONSTRAINT tbl_C2_project_settings_fk_1 FOREIGN KEY (C2_project_id) REFERENCES tbl_C2_project (C2_project_id) ON DELETE CASCADE;
+ALTER TABLE `tbl_C2_project_settings`
+  ADD CONSTRAINT `tbl_C2_project_settings_fk_1` FOREIGN KEY (`C2_project_id`) REFERENCES `tbl_C2_project` (`C2_project_id`) ON DELETE CASCADE;
 
 --
--- Constraints for table tbl_C2_sprint
+-- Constraints for table `tbl_C2_sprint`
 --
-ALTER TABLE tbl_C2_sprint
-  ADD CONSTRAINT tbl_C2_sprint_fk_1 FOREIGN KEY (C2_project_id) REFERENCES tbl_C2_project (C2_project_id) ON DELETE CASCADE;
+ALTER TABLE `tbl_C2_sprint`
+  ADD CONSTRAINT `tbl_C2_sprint_fk_1` FOREIGN KEY (`C2_project_id`) REFERENCES `tbl_C2_project` (`C2_project_id`) ON DELETE CASCADE;

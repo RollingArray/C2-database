@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: Apr 22, 2021 at 02:59 PM
+-- Generation Time: Apr 23, 2021 at 01:29 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -370,6 +370,106 @@ CREATE TABLE IF NOT EXISTS `tbl_C2_current_operation_user` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `tbl_C2_goal`
+--
+
+DROP TABLE IF EXISTS `tbl_C2_goal`;
+CREATE TABLE IF NOT EXISTS `tbl_C2_goal` (
+  `C2_project_id` varchar(200) NOT NULL,
+  `C2_goal_id` varchar(200) NOT NULL DEFAULT '',
+  `C2_goal_name` varchar(200) NOT NULL DEFAULT '',
+  `C2_goal_description` varchar(400) NOT NULL DEFAULT '',
+  `C2_goal_created_on` varchar(200) NOT NULL DEFAULT '',
+  `C2_goal_updated_on` varchar(200) NOT NULL DEFAULT '',
+  PRIMARY KEY (`C2_goal_id`),
+  KEY `tbl_C2_goal_fk_1` (`C2_project_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Triggers `tbl_C2_goal`
+--
+DROP TRIGGER IF EXISTS `tbl_C2_goal_AFTER_DELETE`;
+DELIMITER $$
+CREATE TRIGGER `tbl_C2_goal_AFTER_DELETE` AFTER DELETE ON `tbl_C2_goal` FOR EACH ROW BEGIN
+	DECLARE user_id VARCHAR(200);
+
+    SELECT C2_user_id INTO user_id  FROM tbl_C2_current_operation_user;
+    
+    INSERT INTO tbl_C2_log_book
+			SET 
+				C2_log_operation = 'DELETE',
+				C2_user_id = user_id,
+				C2_project_id = OLD.C2_project_id,
+				C2_log_module = 'goal',
+				C2_log_module_operation_id = OLD.C2_goal_id,
+                C2_log_on_field = 'NAME',
+				C2_log_old_content = OLD.C2_goal_name,
+				C2_log_created_on = NOW(); 
+END
+$$
+DELIMITER ;
+DROP TRIGGER IF EXISTS `tbl_C2_goal_AFTER_INSERT`;
+DELIMITER $$
+CREATE TRIGGER `tbl_C2_goal_AFTER_INSERT` AFTER INSERT ON `tbl_C2_goal` FOR EACH ROW BEGIN
+	DECLARE user_id VARCHAR(200);
+
+    SELECT C2_user_id INTO user_id  FROM tbl_C2_current_operation_user;
+    
+    INSERT INTO tbl_C2_log_book
+			SET 
+				C2_log_operation = 'CREATE',
+				C2_user_id = user_id,
+				C2_project_id = NEW.C2_project_id,
+				C2_log_module = 'goal',
+				C2_log_module_operation_id = NEW.C2_goal_id,
+                C2_log_on_field = 'NAME',
+				C2_log_old_content = NEW.C2_goal_name,
+				C2_log_created_on = NOW(); 
+END
+$$
+DELIMITER ;
+DROP TRIGGER IF EXISTS `tbl_C2_goal_AFTER_UPDATE`;
+DELIMITER $$
+CREATE TRIGGER `tbl_C2_goal_AFTER_UPDATE` AFTER UPDATE ON `tbl_C2_goal` FOR EACH ROW BEGIN
+	DECLARE user_id VARCHAR(200);
+
+	SELECT C2_user_id INTO user_id  FROM tbl_C2_current_operation_user;
+	
+	/*if */
+	IF (OLD.C2_goal_name <> NEW.C2_goal_name) THEN
+		INSERT INTO tbl_C2_log_book
+			SET 
+				C2_log_operation = 'EDIT',
+				C2_user_id = user_id,
+				C2_project_id = OLD.C2_project_id,
+				C2_log_module = 'goal',
+				C2_log_module_operation_id = OLD.C2_goal_id,
+				C2_log_on_field = 'NAME',
+				C2_log_old_content = OLD.C2_goal_name,
+				C2_log_new_content = NEW.C2_goal_name,
+				C2_log_created_on = NOW(); 
+	END IF;
+		
+	IF (OLD.C2_goal_description <> NEW.C2_goal_description) THEN
+		INSERT INTO tbl_C2_log_book
+			SET 
+				C2_log_operation = 'EDIT',
+				C2_user_id = user_id,
+				C2_project_id = OLD.C2_project_id,
+				C2_log_module = 'goal',
+				C2_log_module_operation_id = OLD.C2_goal_id,
+				C2_log_on_field = 'DESCRIPTION',
+				C2_log_old_content = OLD.C2_goal_description,
+				C2_log_new_content = NEW.C2_goal_description,
+				C2_log_created_on = NOW(); 
+	END IF;
+END
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tbl_C2_log_book`
 --
 
@@ -388,106 +488,6 @@ CREATE TABLE IF NOT EXISTS `tbl_C2_log_book` (
   PRIMARY KEY (`C2_log_book_id`),
   KEY `tbl_C2_log_book_fk_1` (`C2_project_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `tbl_C2_objective`
---
-
-DROP TABLE IF EXISTS `tbl_C2_objective`;
-CREATE TABLE IF NOT EXISTS `tbl_C2_objective` (
-  `C2_project_id` varchar(200) NOT NULL,
-  `C2_objective_id` varchar(200) NOT NULL DEFAULT '',
-  `C2_objective_name` varchar(200) NOT NULL DEFAULT '',
-  `C2_objective_description` varchar(400) NOT NULL DEFAULT '',
-  `C2_objective_created_on` varchar(200) NOT NULL DEFAULT '',
-  `C2_objective_updated_on` varchar(200) NOT NULL DEFAULT '',
-  PRIMARY KEY (`C2_objective_id`),
-  KEY `tbl_C2_user_story_fk_1` (`C2_project_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Triggers `tbl_C2_objective`
---
-DROP TRIGGER IF EXISTS `tbl_C2_user_story_AFTER_DELETE`;
-DELIMITER $$
-CREATE TRIGGER `tbl_C2_user_story_AFTER_DELETE` AFTER DELETE ON `tbl_C2_objective` FOR EACH ROW BEGIN
-	DECLARE user_id VARCHAR(200);
-
-    SELECT C2_user_id INTO user_id  FROM tbl_C2_current_operation_user;
-    
-    INSERT INTO tbl_C2_log_book
-			SET 
-				C2_log_operation = 'DELETE',
-				C2_user_id = user_id,
-				C2_project_id = OLD.C2_project_id,
-				C2_log_module = 'USER_STORY',
-				C2_log_module_operation_id = OLD.C2_user_story_id,
-                C2_log_on_field = 'NAME',
-				C2_log_old_content = OLD.C2_user_story_name,
-				C2_log_created_on = NOW(); 
-END
-$$
-DELIMITER ;
-DROP TRIGGER IF EXISTS `tbl_C2_user_story_AFTER_INSERT`;
-DELIMITER $$
-CREATE TRIGGER `tbl_C2_user_story_AFTER_INSERT` AFTER INSERT ON `tbl_C2_objective` FOR EACH ROW BEGIN
-	DECLARE user_id VARCHAR(200);
-
-    SELECT C2_user_id INTO user_id  FROM tbl_C2_current_operation_user;
-    
-    INSERT INTO tbl_C2_log_book
-			SET 
-				C2_log_operation = 'CREATE',
-				C2_user_id = user_id,
-				C2_project_id = NEW.C2_project_id,
-				C2_log_module = 'USER_STORY',
-				C2_log_module_operation_id = NEW.C2_user_story_id,
-                C2_log_on_field = 'NAME',
-				C2_log_old_content = NEW.C2_user_story_name,
-				C2_log_created_on = NOW(); 
-END
-$$
-DELIMITER ;
-DROP TRIGGER IF EXISTS `tbl_C2_user_story_AFTER_UPDATE`;
-DELIMITER $$
-CREATE TRIGGER `tbl_C2_user_story_AFTER_UPDATE` AFTER UPDATE ON `tbl_C2_objective` FOR EACH ROW BEGIN
-	DECLARE user_id VARCHAR(200);
-
-	SELECT C2_user_id INTO user_id  FROM tbl_C2_current_operation_user;
-	
-	/*if */
-	IF (OLD.C2_user_story_name <> NEW.C2_user_story_name) THEN
-		INSERT INTO tbl_C2_log_book
-			SET 
-				C2_log_operation = 'EDIT',
-				C2_user_id = user_id,
-				C2_project_id = OLD.C2_project_id,
-				C2_log_module = 'USER_STORY',
-				C2_log_module_operation_id = OLD.C2_user_story_id,
-				C2_log_on_field = 'NAME',
-				C2_log_old_content = OLD.C2_user_story_name,
-				C2_log_new_content = NEW.C2_user_story_name,
-				C2_log_created_on = NOW(); 
-	END IF;
-		
-	IF (OLD.C2_user_story_description <> NEW.C2_user_story_description) THEN
-		INSERT INTO tbl_C2_log_book
-			SET 
-				C2_log_operation = 'EDIT',
-				C2_user_id = user_id,
-				C2_project_id = OLD.C2_project_id,
-				C2_log_module = 'USER_STORY',
-				C2_log_module_operation_id = OLD.C2_user_story_id,
-				C2_log_on_field = 'DESCRIPTION',
-				C2_log_old_content = OLD.C2_user_story_description,
-				C2_log_new_content = NEW.C2_user_story_description,
-				C2_log_created_on = NOW(); 
-	END IF;
-END
-$$
-DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -663,6 +663,7 @@ CREATE TABLE IF NOT EXISTS `tbl_C2_project_member_type` (
   `C2_crud_project` tinyint(4) DEFAULT '1',
   `C2_crud_member` tinyint(4) DEFAULT '1',
   `C2_crud_sprint` tinyint(4) DEFAULT '1',
+  `C2_crud_goal` tinyint(4) DEFAULT '1',
   PRIMARY KEY (`C2_project_member_type_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -904,20 +905,20 @@ CREATE TABLE IF NOT EXISTS `tbl_C2_user_session` (
 --
 ALTER TABLE `tbl_C2_activity`
   ADD CONSTRAINT `tbl_C2_task_type_measurement_criteria_fk_2` FOREIGN KEY (`C2_project_id`) REFERENCES `tbl_C2_project` (`C2_project_id`),
-  ADD CONSTRAINT `tbl_C2_task_type_measurement_criteria_fk_3` FOREIGN KEY (`C2_activity_id`) REFERENCES `tbl_c2_objective` (`C2_objective_id`),
+  ADD CONSTRAINT `tbl_C2_task_type_measurement_criteria_fk_3` FOREIGN KEY (`C2_activity_id`) REFERENCES `tbl_C2_user_story` (`C2_objective_id`),
   ADD CONSTRAINT `tbl_C2_task_type_measurement_criteria_fk_4` FOREIGN KEY (`C2_sprint_id`) REFERENCES `tbl_C2_sprint` (`C2_sprint_id`);
+
+--
+-- Constraints for table `tbl_C2_goal`
+--
+ALTER TABLE `tbl_C2_goal`
+  ADD CONSTRAINT `tbl_C2_goal_fk_1` FOREIGN KEY (`C2_project_id`) REFERENCES `tbl_C2_project` (`C2_project_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `tbl_C2_log_book`
 --
 ALTER TABLE `tbl_C2_log_book`
   ADD CONSTRAINT `tbl_C2_log_book_fk_1` FOREIGN KEY (`C2_project_id`) REFERENCES `tbl_C2_project` (`C2_project_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `tbl_C2_objective`
---
-ALTER TABLE `tbl_C2_objective`
-  ADD CONSTRAINT `tbl_C2_user_story_fk_1` FOREIGN KEY (`C2_project_id`) REFERENCES `tbl_C2_project` (`C2_project_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `tbl_C2_project_member_association`
