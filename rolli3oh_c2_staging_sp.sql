@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: Apr 23, 2021 at 01:29 PM
+-- Generation Time: Apr 26, 2021 at 03:33 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -103,7 +103,8 @@ SELECT
     C2_crud_project AS crudProject,
     C2_crud_member AS crudMember,
     C2_crud_sprint AS crudSprint,
-    C2_crud_goal AS crudGoal
+    C2_crud_goal AS crudGoal,
+    C2_crud_activity AS crudActivity
 FROM 
     tbl_C2_project_member_type
 LEFT JOIN
@@ -114,6 +115,18 @@ WHERE
     tbl_C2_project_member_association.C2_project_id = project_id
 AND
     tbl_C2_project_member_association.C2_user_id = user_id$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_delete_activity` (IN `user_id` VARCHAR(200), IN `activity_id` VARCHAR(200), IN `project_id` VARCHAR(200))  NO SQL
+BEGIN
+	/*current user	*/
+	CALL sp_update_current_operation_user(user_id);
+    
+    DELETE
+    FROM
+		tbl_C2_activity 
+	WHERE
+		C2_activity_id = activity_id;
+END$$
 
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_delete_goal` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `goal_id` VARCHAR(200), IN `goal_name` VARCHAR(200))  NO SQL
 BEGIN
@@ -878,6 +891,46 @@ BEGIN
         C2_user_id = operation_id;
 END$$
 
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_activity_already_created_for_project` (IN `activity_name` VARCHAR(400), IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200))  NO SQL
+SELECT 
+    C2_activity_id AS activityId
+FROM 
+    tbl_C2_activity
+WHERE 
+    tbl_C2_activity.C2_project_id = project_id
+AND
+    tbl_C2_activity.C2_sprint_id = sprint_id
+AND
+    tbl_C2_activity.C2_assignee_user_id = assignee_user_id
+AND 
+    tbl_C2_activity.C2_activity_name = activity_name$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_activity_already_locked` (IN `activity_id` VARCHAR(400))  NO SQL
+SELECT 
+    C2_activity_locked AS activity_locked
+FROM 
+    tbl_C2_activity
+WHERE 
+    tbl_C2_activity.C2_activity_id = activity_id
+AND
+	tbl_C2_activity.C2_activity_locked = 1$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_activity_present_for_goal` (IN `goal_id` VARCHAR(200))  NO SQL
+SELECT 
+	C2_activity_id AS activityId 
+FROM 
+	tbl_C2_activity 
+WHERE 
+	C2_goal_id = goal_id$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_activity_present_for_sprint` (IN `sprint_id` VARCHAR(200))  NO SQL
+SELECT 
+	C2_activity_id AS activityId 
+FROM 
+	tbl_C2_activity 
+WHERE 
+	C2_sprint_id = sprint_id$$
+
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_domain_already_exist` (IN `user_domain` VARCHAR(200))  NO SQL
 SELECT 
                             C2_domain_id AS domainId
@@ -986,24 +1039,6 @@ WHERE
 AND 
     tbl_C2_sprint.C2_project_id = project_id$$
 
-CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_task_already_created_for_same_user_story` (IN `task_name` VARCHAR(200), IN `user_story_id` VARCHAR(200))  NO SQL
-SELECT 
-                                C2_task_id AS taskId
-                            FROM 
-                                tbl_C2_task
-                            WHERE 
-                                tbl_C2_task.C2_user_story_id = user_story_id 
-                            AND 
-                                tbl_C2_task.C2_task_name = task_name$$
-
-CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_task_present_for_sprint` (IN `sprint_id` VARCHAR(200))  NO SQL
-SELECT 
-                            C2_task_id AS taskId 
-                        FROM 
-                            tbl_C2_task_sprint_association 
-                        WHERE 
-                            C2_sprint_id = sprint_id$$
-
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_user_identified` (IN `user_email` VARCHAR(200), IN `user_security_answer_1` VARCHAR(200), IN `user_security_answer_2` VARCHAR(200))  NO SQL
 SELECT 
                             C2_user_id AS userId
@@ -1047,6 +1082,52 @@ SELECT
                             C2_user_email = user_email
                         AND 
                             C2_user_verification_code = user_verification_code$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_activity` (IN `user_id` VARCHAR(200), IN `activity_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `goal_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200), IN `activity_name` VARCHAR(400), IN `weight` INT(11), IN `activity_measurement_type` VARCHAR(100), IN `activity_result_type` VARCHAR(100), IN `criteria_poor_value` INT(11), IN `criteria_improvement_value` INT(11), IN `criteria_expectation_value` INT(11), IN `criteria_exceed_value` INT(11), IN `criteria_outstanding_value` INT(11), IN `characteristics_higher_better` INT(11))  NO SQL
+BEGIN
+    /*current user	*/
+	CALL sp_update_current_operation_user(user_id);
+    
+    INSERT INTO 
+    tbl_C2_activity 
+        (
+			C2_activity_id, 
+            C2_project_id, 
+            C2_sprint_id, 
+            C2_goal_id,
+            C2_assignee_user_id,
+			C2_activity_name,
+            C2_weight,
+            C2_activity_measurement_type,
+            C2_activity_result_type,  
+            C2_criteria_poor_value,
+            C2_criteria_improvement_value,
+            C2_criteria_expectation_value,
+            C2_criteria_exceed_value,
+            C2_criteria_outstanding_value,
+            C2_characteristics_higher_better,
+            C2_activity_created_at
+        ) 
+    values 
+        (
+            activity_id, 
+            project_id, 
+            sprint_id, 
+            goal_id,
+            assignee_user_id,
+			activity_name,
+            weight,
+            activity_measurement_type,
+            activity_result_type,  
+            criteria_poor_value,
+            criteria_improvement_value,
+            criteria_expectation_value,
+            criteria_exceed_value,
+            criteria_outstanding_value,
+            characteristics_higher_better,
+            now()
+        );
+END$$
 
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_new_domain` (IN `domain_id` VARCHAR(200), IN `user_domain` VARCHAR(200), IN `domain_controller_user_id` VARCHAR(200), IN `domain_status` VARCHAR(200))  NO SQL
 INSERT INTO 
@@ -1290,47 +1371,6 @@ BEGIN
 		);
 END$$
 
-CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_task_type_measurement_criteria` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `user_story_id` VARCHAR(200), IN `task_type_id` VARCHAR(200), IN `measurement_purpose` VARCHAR(400), IN `task_type_measurement_criteria_id` VARCHAR(200), IN `task_type_measurement_type` VARCHAR(10), IN `criteria_poor_value` INT(11), IN `criteria_improvement_value` INT(11), IN `criteria_expectation_value` INT(11), IN `criteria_exceed_value` INT(11), IN `criteria_outstanding_value` INT(11), IN `characteristics_higher_better` INT(11))  NO SQL
-BEGIN
-    /*current user	*/
-	CALL sp_update_current_operation_user(user_id);
-    INSERT INTO 
-    tbl_C2_task_type_measurement_criteria 
-        (
-            C2_project_id, 
-            C2_sprint_id, 
-            C2_user_story_id,
-            C2_task_type_measurement_criteria_id, 
-            C2_task_type_id,
-            C2_measurement_purpose,
-            C2_task_type_measurement_type,  
-            C2_criteria_poor_value,
-            C2_criteria_improvement_value,
-            C2_criteria_expectation_value,
-            C2_criteria_exceed_value,
-            C2_criteria_outstanding_value,
-            C2_characteristics_higher_better,
-            C2_task_type_measurement_criteria_created_at
-        ) 
-    values 
-        (
-            project_id,
-            sprint_id,
-            user_story_id,
-            task_type_measurement_criteria_id,
-            task_type_id,
-            measurement_purpose,
-            task_type_measurement_type,
-            criteria_poor_value,
-            criteria_improvement_value,
-            criteria_expectation_value,
-            criteria_exceed_value,
-            criteria_outstanding_value,
-            characteristics_higher_better,
-            now()
-        );
-END$$
-
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_user_performance_matrix` (IN `user_performance_matrix_id` VARCHAR(200), IN `user_id` VARCHAR(200), IN `matrix_user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `user_story_id` VARCHAR(200), IN `weight` INT(11))  NO SQL
 BEGIN
     /*current user	*/
@@ -1376,6 +1416,20 @@ SELECT
                 AND 
                     C2_sprint_status = "NO_SPRINT_STATUS"
                 )$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_lock_activity` (IN `user_id` VARCHAR(200), IN `activity_id` VARCHAR(200), IN `activity_locked` INT(11))  NO SQL
+BEGIN
+	/*current user	*/
+	CALL sp_update_current_operation_user(user_id);
+    
+    UPDATE
+		tbl_C2_activity 
+	SET
+		C2_activity_locked = activity_locked,
+        C2_activity_updated_at = now()
+	WHERE
+		C2_activity_id = activity_id;
+END$$
 
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_pull_all_tasks_for_project` (IN `project_id` VARCHAR(200))  NO SQL
 SELECT
@@ -1683,6 +1737,31 @@ UPDATE
                         WHERE 
                             C2_user_id = user_id$$
 
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_activity` (IN `user_id` VARCHAR(200), IN `activity_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200), IN `activity_name` VARCHAR(400), IN `weight` INT(11), IN `activity_measurement_type` VARCHAR(100), IN `activity_result_type` VARCHAR(100), IN `criteria_poor_value` INT(11), IN `criteria_improvement_value` INT(11), IN `criteria_expectation_value` INT(11), IN `criteria_exceed_value` INT(11), IN `criteria_outstanding_value` INT(11), IN `characteristics_higher_better` INT(11))  NO SQL
+BEGIN
+	/*current user	*/
+	CALL sp_update_current_operation_user(user_id);
+    
+    UPDATE
+		tbl_C2_activity 
+	SET
+		C2_sprint_id = sprint_id, 
+        C2_assignee_user_id = assignee_user_id,
+        C2_activity_name = activity_name,
+        C2_weight = weight,
+        C2_activity_measurement_type = activity_measurement_type,
+        C2_activity_result_type = activity_result_type,  
+        C2_criteria_poor_value = criteria_poor_value,
+        C2_criteria_improvement_value = criteria_improvement_value,
+        C2_criteria_expectation_value = criteria_expectation_value,
+        C2_criteria_exceed_value = criteria_exceed_value,
+        C2_criteria_outstanding_value = criteria_outstanding_value,
+        C2_characteristics_higher_better = characteristics_higher_better,
+        C2_activity_updated_at = now()
+	WHERE
+		C2_activity_id = activity_id;
+END$$
+
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_current_operation_user` (IN `user_id` VARCHAR(200))  NO SQL
 BEGIN
       UPDATE tbl_C2_current_operation_user
@@ -1822,23 +1901,6 @@ BEGIN
         C2_task_id = task_id;
 END$$
 
-CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_task_type_measurement_criteria` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `task_type_measurement_criteria_id` VARCHAR(200), IN `criteria_poor_value` INT(11), IN `criteria_improvement_value` INT(11), IN `criteria_expectation_value` INT(11), IN `criteria_exceed_value` INT(11), IN `criteria_outstanding_value` INT(11))  BEGIN
-	/*current user	*/
-	CALL sp_update_current_operation_user(user_id);
-    UPDATE
-		tbl_C2_task_type_measurement_criteria 
-	SET
-		C2_sprint_id = sprint_id,
-		C2_criteria_poor_value = criteria_poor_value,
-		C2_criteria_improvement_value = criteria_improvement_value,
-		C2_criteria_expectation_value = criteria_expectation_value,
-		C2_criteria_exceed_value = criteria_exceed_value,
-		C2_criteria_outstanding_value = criteria_outstanding_value,
-		C2_task_type_measurement_criteria_updated_at = now()
-	WHERE
-		task_type_measurement_criteria_id = task_type_measurement_criteria_id;
-END$$
-
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_user_story` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `user_story_id` VARCHAR(200), IN `user_story_name` VARCHAR(200), IN `user_story_description` VARCHAR(400))  NO SQL
 BEGIN
     /*current user	*/
@@ -1867,10 +1929,11 @@ CREATE TABLE `tbl_C2_activity` (
   `C2_project_id` varchar(200) DEFAULT NULL,
   `C2_sprint_id` varchar(200) DEFAULT NULL,
   `C2_assignee_user_id` varchar(200) DEFAULT NULL,
-  `C2_activity_measurement_purpose` varchar(400) DEFAULT NULL,
+  `C2_goal_id` varchar(200) DEFAULT NULL,
+  `C2_activity_name` varchar(400) DEFAULT NULL,
   `C2_weight` int(11) DEFAULT NULL,
-  `C2_activity_key_completion_indicator` varchar(1000) DEFAULT NULL,
-  `C2_task_type_measurement_type` varchar(10) DEFAULT NULL,
+  `C2_activity_measurement_type` varchar(100) DEFAULT NULL,
+  `C2_activity_result_type` varchar(100) DEFAULT NULL,
   `C2_criteria_poor_value` int(11) DEFAULT NULL,
   `C2_criteria_improvement_value` int(11) DEFAULT NULL,
   `C2_criteria_expectation_value` int(11) DEFAULT NULL,
@@ -1879,8 +1942,9 @@ CREATE TABLE `tbl_C2_activity` (
   `C2_characteristics_higher_better` int(11) DEFAULT '1',
   `C2_activity_achieved_fact` int(11) DEFAULT NULL,
   `C2_assignee_comment` varchar(1000) DEFAULT NULL,
-  `C2_task_type_measurement_criteria_created_at` datetime DEFAULT NULL,
-  `C2_task_type_measurement_criteria_updated_at` datetime DEFAULT NULL
+  `C2_activity_locked` int(11) DEFAULT '0',
+  `C2_activity_created_at` datetime DEFAULT NULL,
+  `C2_activity_updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -1986,7 +2050,8 @@ CREATE TABLE `tbl_C2_project_member_type` (
   `C2_crud_project` tinyint(4) DEFAULT '1',
   `C2_crud_member` tinyint(4) DEFAULT '1',
   `C2_crud_sprint` tinyint(4) DEFAULT '1',
-  `C2_crud_goal` tinyint(4) DEFAULT '1'
+  `C2_crud_goal` tinyint(4) DEFAULT '1',
+  `C2_crud_activity` tinyint(4) DEFAULT '1'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -2072,9 +2137,10 @@ CREATE TABLE `tbl_C2_user_session` (
 -- Indexes for table `tbl_C2_activity`
 --
 ALTER TABLE `tbl_C2_activity`
-  ADD KEY `tbl_C2_task_type_measurement_criteria_fk_2` (`C2_project_id`),
-  ADD KEY `tbl_C2_task_type_measurement_criteria_fk_3` (`C2_activity_id`),
-  ADD KEY `tbl_C2_task_type_measurement_criteria_fk_4` (`C2_sprint_id`);
+  ADD KEY `tbl_C2_activity_fk_1` (`C2_project_id`),
+  ADD KEY `tbl_C2_activity_fk_3` (`C2_assignee_user_id`),
+  ADD KEY `tbl_C2_activity_fk_4` (`C2_goal_id`),
+  ADD KEY `tbl_C2_activity_fk_2` (`C2_sprint_id`);
 
 --
 -- Indexes for table `tbl_C2_activity_review`
@@ -2172,9 +2238,10 @@ ALTER TABLE `tbl_C2_project_settings`
 -- Constraints for table `tbl_C2_activity`
 --
 ALTER TABLE `tbl_C2_activity`
-  ADD CONSTRAINT `tbl_C2_task_type_measurement_criteria_fk_2` FOREIGN KEY (`C2_project_id`) REFERENCES `tbl_C2_project` (`C2_project_id`),
-  ADD CONSTRAINT `tbl_C2_task_type_measurement_criteria_fk_3` FOREIGN KEY (`C2_activity_id`) REFERENCES `tbl_C2_user_story` (`C2_objective_id`),
-  ADD CONSTRAINT `tbl_C2_task_type_measurement_criteria_fk_4` FOREIGN KEY (`C2_sprint_id`) REFERENCES `tbl_C2_sprint` (`C2_sprint_id`);
+  ADD CONSTRAINT `tbl_C2_activity_fk_1` FOREIGN KEY (`C2_project_id`) REFERENCES `tbl_C2_project` (`C2_project_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `tbl_C2_activity_fk_2` FOREIGN KEY (`C2_sprint_id`) REFERENCES `tbl_C2_sprint` (`C2_sprint_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `tbl_C2_activity_fk_3` FOREIGN KEY (`C2_assignee_user_id`) REFERENCES `tbl_C2_user` (`C2_user_id`),
+  ADD CONSTRAINT `tbl_C2_activity_fk_4` FOREIGN KEY (`C2_goal_id`) REFERENCES `tbl_C2_goal` (`C2_goal_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `tbl_C2_goal`

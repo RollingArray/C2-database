@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: Apr 23, 2021 at 01:29 PM
+-- Generation Time: Apr 26, 2021 at 03:31 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -28,10 +28,11 @@ CREATE TABLE IF NOT EXISTS `tbl_C2_activity` (
   `C2_project_id` varchar(200) DEFAULT NULL,
   `C2_sprint_id` varchar(200) DEFAULT NULL,
   `C2_assignee_user_id` varchar(200) DEFAULT NULL,
-  `C2_activity_measurement_purpose` varchar(400) DEFAULT NULL,
+  `C2_goal_id` varchar(200) DEFAULT NULL,
+  `C2_activity_name` varchar(400) DEFAULT NULL,
   `C2_weight` int(11) DEFAULT NULL,
-  `C2_activity_key_completion_indicator` varchar(1000) DEFAULT NULL,
-  `C2_task_type_measurement_type` varchar(10) DEFAULT NULL,
+  `C2_activity_measurement_type` varchar(100) DEFAULT NULL,
+  `C2_activity_result_type` varchar(100) DEFAULT NULL,
   `C2_criteria_poor_value` int(11) DEFAULT NULL,
   `C2_criteria_improvement_value` int(11) DEFAULT NULL,
   `C2_criteria_expectation_value` int(11) DEFAULT NULL,
@@ -40,19 +41,21 @@ CREATE TABLE IF NOT EXISTS `tbl_C2_activity` (
   `C2_characteristics_higher_better` int(11) DEFAULT '1',
   `C2_activity_achieved_fact` int(11) DEFAULT NULL,
   `C2_assignee_comment` varchar(1000) DEFAULT NULL,
-  `C2_task_type_measurement_criteria_created_at` datetime DEFAULT NULL,
-  `C2_task_type_measurement_criteria_updated_at` datetime DEFAULT NULL,
-  KEY `tbl_C2_task_type_measurement_criteria_fk_2` (`C2_project_id`),
-  KEY `tbl_C2_task_type_measurement_criteria_fk_3` (`C2_activity_id`),
-  KEY `tbl_C2_task_type_measurement_criteria_fk_4` (`C2_sprint_id`)
+  `C2_activity_locked` int(11) DEFAULT '0',
+  `C2_activity_created_at` datetime DEFAULT NULL,
+  `C2_activity_updated_at` datetime DEFAULT NULL,
+  KEY `tbl_C2_activity_fk_1` (`C2_project_id`),
+  KEY `tbl_C2_activity_fk_3` (`C2_assignee_user_id`),
+  KEY `tbl_C2_activity_fk_4` (`C2_goal_id`),
+  KEY `tbl_C2_activity_fk_2` (`C2_sprint_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Triggers `tbl_C2_activity`
 --
-DROP TRIGGER IF EXISTS `tbl_C2_task_type_measurement_criteria_AFTER_DELETE`;
+DROP TRIGGER IF EXISTS `tbl_C2_activity_AFTER_DELETE`;
 DELIMITER $$
-CREATE TRIGGER `tbl_C2_task_type_measurement_criteria_AFTER_DELETE` AFTER DELETE ON `tbl_C2_activity` FOR EACH ROW BEGIN
+CREATE TRIGGER `tbl_C2_activity_AFTER_DELETE` AFTER DELETE ON `tbl_C2_activity` FOR EACH ROW BEGIN
 	DECLARE user_id VARCHAR(200);
 
     SELECT C2_user_id INTO user_id  FROM tbl_C2_current_operation_user;
@@ -62,17 +65,17 @@ CREATE TRIGGER `tbl_C2_task_type_measurement_criteria_AFTER_DELETE` AFTER DELETE
 				C2_log_operation = 'DELETE',
 				C2_user_id = user_id,
                 C2_project_id = OLD.C2_project_id,
-                C2_log_module = 'TASK_TYPE_MEASUREMENT_CRITERIA',
-				C2_log_module_operation_id = OLD.C2_task_type_id,
-                C2_log_on_field = 'MEASUREMENT_TYPE',
-				C2_log_old_content = OLD.C2_task_type_measurement_type,
+                C2_log_module = 'activity',
+				C2_log_module_operation_id = OLD.C2_activity_id,
+                C2_log_on_field = 'ACTIVITY_NAME',
+				C2_log_old_content = OLD.C2_activity_name,
 				C2_log_created_on = NOW(); 
 END
 $$
 DELIMITER ;
-DROP TRIGGER IF EXISTS `tbl_C2_task_type_measurement_criteria_AFTER_INSERT`;
+DROP TRIGGER IF EXISTS `tbl_C2_activity_AFTER_INSERT`;
 DELIMITER $$
-CREATE TRIGGER `tbl_C2_task_type_measurement_criteria_AFTER_INSERT` AFTER INSERT ON `tbl_C2_activity` FOR EACH ROW BEGIN
+CREATE TRIGGER `tbl_C2_activity_AFTER_INSERT` AFTER INSERT ON `tbl_C2_activity` FOR EACH ROW BEGIN
 	DECLARE user_id VARCHAR(200);
 
     SELECT C2_user_id INTO user_id  FROM tbl_C2_current_operation_user;
@@ -82,33 +85,33 @@ CREATE TRIGGER `tbl_C2_task_type_measurement_criteria_AFTER_INSERT` AFTER INSERT
 				C2_log_operation = 'CREATE',
 				C2_user_id = user_id,
                 C2_project_id = NEW.C2_project_id,
-                C2_log_module = 'TASK_TYPE_MEASUREMENT_CRITERIA',
-				C2_log_module_operation_id = NEW.C2_task_type_id,
-                C2_log_on_field = 'MEASUREMENT_TYPE',
-				C2_log_old_content = NEW.C2_measurement_purpose,
+                C2_log_module = 'activity',
+				C2_log_module_operation_id = NEW.C2_activity_id,
+                C2_log_on_field = 'ACTIVITY_NAME',
+				C2_log_old_content = NEW.C2_activity_name,
 				C2_log_created_on = NOW(); 
 END
 $$
 DELIMITER ;
-DROP TRIGGER IF EXISTS `tbl_C2_task_type_measurement_criteria_AFTER_UPDATE`;
+DROP TRIGGER IF EXISTS `tbl_C2_activity_AFTER_UPDATE`;
 DELIMITER $$
-CREATE TRIGGER `tbl_C2_task_type_measurement_criteria_AFTER_UPDATE` AFTER UPDATE ON `tbl_C2_activity` FOR EACH ROW BEGIN
+CREATE TRIGGER `tbl_C2_activity_AFTER_UPDATE` AFTER UPDATE ON `tbl_C2_activity` FOR EACH ROW BEGIN
 	DECLARE user_id VARCHAR(200);
 
 	SELECT C2_user_id INTO user_id  FROM tbl_C2_current_operation_user;
 	
-	/*if measurement purpose updated*/
-	IF (OLD.C2_measurement_purpose <> NEW.C2_measurement_purpose) THEN
+	/*if activity name updated*/
+	IF (OLD.C2_activity_name <> NEW.C2_activity_name) THEN
 		INSERT INTO tbl_C2_log_book
 			SET 
 				C2_log_operation = 'EDIT',
 				C2_user_id = user_id,
 				C2_project_id = OLD.C2_project_id,
-				C2_log_module = 'TASK_TYPE_MEASUREMENT_CRITERIA',
-				C2_log_module_operation_id = OLD.C2_task_type_measurement_criteria_id,
-				C2_log_on_field = 'MEASUREMENT_PURPOSE',
-				C2_log_old_content = OLD.C2_measurement_purpose,
-				C2_log_new_content = NEW.C2_measurement_purpose,
+				C2_log_module = 'activity',
+				C2_log_module_operation_id = OLD.C2_activity_id,
+				C2_log_on_field = 'ACTIVITY_NAME',
+				C2_log_old_content = OLD.C2_activity_name,
+				C2_log_new_content = NEW.C2_activity_name,
 				C2_log_created_on = NOW(); 
 	END IF;
 	
@@ -119,26 +122,56 @@ CREATE TRIGGER `tbl_C2_task_type_measurement_criteria_AFTER_UPDATE` AFTER UPDATE
 				C2_log_operation = 'EDIT',
 				C2_user_id = user_id,
 				C2_project_id = OLD.C2_project_id,
-				C2_log_module = 'TASK_TYPE_MEASUREMENT_CRITERIA',
-				C2_log_module_operation_id = OLD.C2_task_type_measurement_criteria_id,
+				C2_log_module = 'activity',
+				C2_log_module_operation_id = OLD.C2_activity_id,
 				C2_log_on_field = 'SPRINT',
 				C2_log_old_content = OLD.C2_sprint_id,
 				C2_log_new_content = NEW.C2_sprint_id,
 				C2_log_created_on = NOW(); 
 	END IF;
 	
-	/*if measurement type updated*/
-	IF (OLD.C2_task_type_measurement_type <> NEW.C2_task_type_measurement_type) THEN
+	/*if weight updated*/
+	IF (OLD.C2_weight <> NEW.C2_weight) THEN
 		INSERT INTO tbl_C2_log_book
 			SET 
 				C2_log_operation = 'EDIT',
 				C2_user_id = user_id,
 				C2_project_id = OLD.C2_project_id,
-				C2_log_module = 'TASK_TYPE_MEASUREMENT_CRITERIA',
-				C2_log_module_operation_id = OLD.C2_task_type_measurement_criteria_id,
+				C2_log_module = 'activity',
+				C2_log_module_operation_id = OLD.C2_activity_id,
+				C2_log_on_field = 'WEIGHT',
+				C2_log_old_content = OLD.C2_weight,
+				C2_log_new_content = NEW.C2_weight,
+				C2_log_created_on = NOW(); 
+	END IF;
+
+    /*if measurement type updated*/
+	IF (OLD.C2_activity_measurement_type <> NEW.C2_activity_measurement_type) THEN
+		INSERT INTO tbl_C2_log_book
+			SET 
+				C2_log_operation = 'EDIT',
+				C2_user_id = user_id,
+				C2_project_id = OLD.C2_project_id,
+				C2_log_module = 'activity',
+				C2_log_module_operation_id = OLD.C2_activity_id,
 				C2_log_on_field = 'MEASUREMENT_TYPE',
-				C2_log_old_content = OLD.C2_task_type_measurement_type,
-				C2_log_new_content = NEW.C2_task_type_measurement_type,
+				C2_log_old_content = OLD.C2_activity_measurement_type,
+				C2_log_new_content = NEW.C2_activity_measurement_type,
+				C2_log_created_on = NOW(); 
+	END IF;
+
+    /*if result type updated*/
+	IF (OLD.C2_activity_result_type <> NEW.C2_activity_result_type) THEN
+		INSERT INTO tbl_C2_log_book
+			SET 
+				C2_log_operation = 'EDIT',
+				C2_user_id = user_id,
+				C2_project_id = OLD.C2_project_id,
+				C2_log_module = 'activity',
+				C2_log_module_operation_id = OLD.C2_activity_id,
+				C2_log_on_field = 'RESULT_TYPE',
+				C2_log_old_content = OLD.C2_activity_result_type,
+				C2_log_new_content = NEW.C2_activity_result_type,
 				C2_log_created_on = NOW(); 
 	END IF;
 		
@@ -149,9 +182,9 @@ CREATE TRIGGER `tbl_C2_task_type_measurement_criteria_AFTER_UPDATE` AFTER UPDATE
 				C2_log_operation = 'EDIT',
 				C2_user_id = user_id,
 				C2_project_id = OLD.C2_project_id,
-				C2_log_module = 'TASK_TYPE_MEASUREMENT_CRITERIA',
-				C2_log_module_operation_id = OLD.C2_task_type_measurement_criteria_id,
-				C2_log_on_field = 'MEASUREMENT_CRITERIA_NUMERIC_POOR_VALUE',
+				C2_log_module = 'activity',
+				C2_log_module_operation_id = OLD.C2_activity_id,
+				C2_log_on_field = 'POOR_VALUE',
 				C2_log_old_content = OLD.C2_criteria_poor_value,
 				C2_log_new_content = NEW.C2_criteria_poor_value,
 				C2_log_created_on = NOW(); 
@@ -164,9 +197,9 @@ CREATE TRIGGER `tbl_C2_task_type_measurement_criteria_AFTER_UPDATE` AFTER UPDATE
 				C2_log_operation = 'EDIT',
 				C2_user_id = user_id,
 				C2_project_id = OLD.C2_project_id,
-				C2_log_module = 'TASK_TYPE_MEASUREMENT_CRITERIA',
-				C2_log_module_operation_id = OLD.C2_task_type_measurement_criteria_id,
-				C2_log_on_field = 'MEASUREMENT_CRITERIA_NUMERIC_IMPROVEMENT_VALUE',
+				C2_log_module = 'activity',
+				C2_log_module_operation_id = OLD.C2_activity_id,
+				C2_log_on_field = 'IMPROVEMENT_VALUE',
 				C2_log_old_content = OLD.C2_criteria_improvement_value,
 				C2_log_new_content = NEW.C2_criteria_improvement_value,
 				C2_log_created_on = NOW(); 
@@ -179,9 +212,9 @@ CREATE TRIGGER `tbl_C2_task_type_measurement_criteria_AFTER_UPDATE` AFTER UPDATE
 				C2_log_operation = 'EDIT',
 				C2_user_id = user_id,
 				C2_project_id = OLD.C2_project_id,
-				C2_log_module = 'TASK_TYPE_MEASUREMENT_CRITERIA',
-				C2_log_module_operation_id = OLD.C2_task_type_measurement_criteria_id,
-				C2_log_on_field = 'MEASUREMENT_CRITERIA_NUMERIC_EXPECTATION_VALUE',
+				C2_log_module = 'activity',
+				C2_log_module_operation_id = OLD.C2_activity_id,
+				C2_log_on_field = 'EXPECTATION_VALUE',
 				C2_log_old_content = OLD.C2_criteria_expectation_value,
 				C2_log_new_content = NEW.C2_criteria_expectation_value,
 				C2_log_created_on = NOW(); 
@@ -194,9 +227,9 @@ CREATE TRIGGER `tbl_C2_task_type_measurement_criteria_AFTER_UPDATE` AFTER UPDATE
 				C2_log_operation = 'EDIT',
 				C2_user_id = user_id,
 				C2_project_id = OLD.C2_project_id,
-				C2_log_module = 'TASK_TYPE_MEASUREMENT_CRITERIA',
-				C2_log_module_operation_id = OLD.C2_task_type_measurement_criteria_id,
-				C2_log_on_field = 'MEASUREMENT_CRITERIA_NUMERIC_EXCEED_VALUE',
+				C2_log_module = 'activity',
+				C2_log_module_operation_id = OLD.C2_activity_id,
+				C2_log_on_field = 'EXCEED_VALUE',
 				C2_log_old_content = OLD.C2_criteria_exceed_value,
 				C2_log_new_content = NEW.C2_criteria_exceed_value,
 				C2_log_created_on = NOW(); 
@@ -209,15 +242,73 @@ CREATE TRIGGER `tbl_C2_task_type_measurement_criteria_AFTER_UPDATE` AFTER UPDATE
 				C2_log_operation = 'EDIT',
 				C2_user_id = user_id,
 				C2_project_id = OLD.C2_project_id,
-				C2_log_module = 'TASK_TYPE_MEASUREMENT_CRITERIA',
-				C2_log_module_operation_id = OLD.C2_task_type_measurement_criteria_id,
-				C2_log_on_field = 'MEASUREMENT_CRITERIA_NUMERIC_OUTSTANDING_VALUE',
+				C2_log_module = 'activity',
+				C2_log_module_operation_id = OLD.C2_activity_id,
+				C2_log_on_field = 'OUTSTANDING_VALUE',
 				C2_log_old_content = OLD.C2_criteria_outstanding_value,
 				C2_log_new_content = NEW.C2_criteria_outstanding_value,
 				C2_log_created_on = NOW(); 
 	END IF;
-    
-        
+
+    /*if measurement type updated*/
+	IF (OLD.C2_characteristics_higher_better <> NEW.C2_characteristics_higher_better) THEN
+		INSERT INTO tbl_C2_log_book
+			SET 
+				C2_log_operation = 'EDIT',
+				C2_user_id = user_id,
+				C2_project_id = OLD.C2_project_id,
+				C2_log_module = 'activity',
+				C2_log_module_operation_id = OLD.C2_activity_id,
+				C2_log_on_field = 'HIGHER_BETTER',
+				C2_log_old_content = OLD.C2_characteristics_higher_better,
+				C2_log_new_content = NEW.C2_characteristics_higher_better,
+				C2_log_created_on = NOW(); 
+	END IF;
+
+    /*if measurement type updated*/
+	IF (OLD.C2_activity_achieved_fact <> NEW.C2_activity_achieved_fact) THEN
+		INSERT INTO tbl_C2_log_book
+			SET 
+				C2_log_operation = 'EDIT',
+				C2_user_id = user_id,
+				C2_project_id = OLD.C2_project_id,
+				C2_log_module = 'activity',
+				C2_log_module_operation_id = OLD.C2_activity_id,
+				C2_log_on_field = 'FACT',
+				C2_log_old_content = OLD.C2_activity_achieved_fact,
+				C2_log_new_content = NEW.C2_activity_achieved_fact,
+				C2_log_created_on = NOW(); 
+	END IF;
+
+    /*if measurement type updated*/
+	IF (OLD.C2_assignee_comment <> NEW.C2_assignee_comment) THEN
+		INSERT INTO tbl_C2_log_book
+			SET 
+				C2_log_operation = 'EDIT',
+				C2_user_id = user_id,
+				C2_project_id = OLD.C2_project_id,
+				C2_log_module = 'activity',
+				C2_log_module_operation_id = OLD.C2_activity_id,
+				C2_log_on_field = 'COMMENT',
+				C2_log_old_content = OLD.C2_assignee_comment,
+				C2_log_new_content = NEW.C2_assignee_comment,
+				C2_log_created_on = NOW(); 
+	END IF;
+
+    /*if measurement type updated*/
+	IF (OLD.C2_activity_locked <> NEW.C2_activity_locked) THEN
+		INSERT INTO tbl_C2_log_book
+			SET 
+				C2_log_operation = 'EDIT',
+				C2_user_id = user_id,
+				C2_project_id = OLD.C2_project_id,
+				C2_log_module = 'activity',
+				C2_log_module_operation_id = OLD.C2_activity_id,
+				C2_log_on_field = 'LOCKED',
+				C2_log_old_content = OLD.C2_activity_locked,
+				C2_log_new_content = NEW.C2_activity_locked,
+				C2_log_created_on = NOW(); 
+	END IF;
 END
 $$
 DELIMITER ;
@@ -664,6 +755,7 @@ CREATE TABLE IF NOT EXISTS `tbl_C2_project_member_type` (
   `C2_crud_member` tinyint(4) DEFAULT '1',
   `C2_crud_sprint` tinyint(4) DEFAULT '1',
   `C2_crud_goal` tinyint(4) DEFAULT '1',
+  `C2_crud_activity` tinyint(4) DEFAULT '1',
   PRIMARY KEY (`C2_project_member_type_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -904,9 +996,10 @@ CREATE TABLE IF NOT EXISTS `tbl_C2_user_session` (
 -- Constraints for table `tbl_C2_activity`
 --
 ALTER TABLE `tbl_C2_activity`
-  ADD CONSTRAINT `tbl_C2_task_type_measurement_criteria_fk_2` FOREIGN KEY (`C2_project_id`) REFERENCES `tbl_C2_project` (`C2_project_id`),
-  ADD CONSTRAINT `tbl_C2_task_type_measurement_criteria_fk_3` FOREIGN KEY (`C2_activity_id`) REFERENCES `tbl_C2_user_story` (`C2_objective_id`),
-  ADD CONSTRAINT `tbl_C2_task_type_measurement_criteria_fk_4` FOREIGN KEY (`C2_sprint_id`) REFERENCES `tbl_C2_sprint` (`C2_sprint_id`);
+  ADD CONSTRAINT `tbl_C2_activity_fk_1` FOREIGN KEY (`C2_project_id`) REFERENCES `tbl_C2_project` (`C2_project_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `tbl_C2_activity_fk_2` FOREIGN KEY (`C2_sprint_id`) REFERENCES `tbl_C2_sprint` (`C2_sprint_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `tbl_C2_activity_fk_3` FOREIGN KEY (`C2_assignee_user_id`) REFERENCES `tbl_C2_user` (`C2_user_id`),
+  ADD CONSTRAINT `tbl_C2_activity_fk_4` FOREIGN KEY (`C2_goal_id`) REFERENCES `tbl_C2_goal` (`C2_goal_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `tbl_C2_goal`
