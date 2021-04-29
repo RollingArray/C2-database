@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: Apr 27, 2021 at 10:35 AM
+-- Generation Time: Apr 29, 2021 at 03:26 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `tbl_C2_activity` (
   `C2_assignee_user_id` varchar(200) DEFAULT NULL,
   `C2_goal_id` varchar(200) DEFAULT NULL,
   `C2_activity_name` varchar(400) DEFAULT NULL,
-  `C2_weight` int(11) DEFAULT NULL,
+  `C2_activity_weight` int(11) DEFAULT NULL,
   `C2_activity_measurement_type` varchar(100) DEFAULT NULL,
   `C2_activity_result_type` varchar(100) DEFAULT NULL,
   `C2_criteria_poor_value` int(11) DEFAULT NULL,
