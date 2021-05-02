@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: Apr 29, 2021 at 03:26 PM
+-- Generation Time: May 02, 2021 at 03:05 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -24,7 +24,7 @@ USE `rolli3oh_c2`;
 
 DROP TABLE IF EXISTS `tbl_C2_activity`;
 CREATE TABLE IF NOT EXISTS `tbl_C2_activity` (
-  `C2_activity_id` varchar(200) DEFAULT NULL,
+  `C2_activity_id` varchar(200) NOT NULL,
   `C2_project_id` varchar(200) DEFAULT NULL,
   `C2_sprint_id` varchar(200) DEFAULT NULL,
   `C2_assignee_user_id` varchar(200) DEFAULT NULL,
@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS `tbl_C2_activity` (
   `C2_activity_locked` int(11) DEFAULT '0',
   `C2_activity_created_at` datetime DEFAULT NULL,
   `C2_activity_updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`C2_activity_id`),
   KEY `tbl_C2_activity_fk_1` (`C2_project_id`),
   KEY `tbl_C2_activity_fk_3` (`C2_assignee_user_id`),
   KEY `tbl_C2_activity_fk_4` (`C2_goal_id`),
@@ -115,23 +116,8 @@ CREATE TRIGGER `tbl_C2_activity_AFTER_UPDATE` AFTER UPDATE ON `tbl_C2_activity` 
 				C2_log_created_on = NOW(); 
 	END IF;
 	
-	/*if sprint updated*/
-	IF (OLD.C2_sprint_id <> NEW.C2_sprint_id) THEN
-		INSERT INTO tbl_C2_log_book
-			SET 
-				C2_log_operation = 'EDIT',
-				C2_user_id = user_id,
-				C2_project_id = OLD.C2_project_id,
-				C2_log_module = 'activity',
-				C2_log_module_operation_id = OLD.C2_activity_id,
-				C2_log_on_field = 'SPRINT',
-				C2_log_old_content = OLD.C2_sprint_id,
-				C2_log_new_content = NEW.C2_sprint_id,
-				C2_log_created_on = NOW(); 
-	END IF;
-	
-	/*if weight updated*/
-	IF (OLD.C2_weight <> NEW.C2_weight) THEN
+    /*if weight updated*/
+	IF (OLD.C2_activity_weight <> NEW.C2_activity_weight) THEN
 		INSERT INTO tbl_C2_log_book
 			SET 
 				C2_log_operation = 'EDIT',
@@ -140,8 +126,8 @@ CREATE TRIGGER `tbl_C2_activity_AFTER_UPDATE` AFTER UPDATE ON `tbl_C2_activity` 
 				C2_log_module = 'activity',
 				C2_log_module_operation_id = OLD.C2_activity_id,
 				C2_log_on_field = 'WEIGHT',
-				C2_log_old_content = OLD.C2_weight,
-				C2_log_new_content = NEW.C2_weight,
+				C2_log_old_content = OLD.C2_activity_weight,
+				C2_log_new_content = NEW.C2_activity_weight,
 				C2_log_created_on = NOW(); 
 	END IF;
 
