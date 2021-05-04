@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: May 02, 2021 at 03:05 PM
+-- Generation Time: May 04, 2021 at 03:45 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -42,8 +42,8 @@ CREATE TABLE IF NOT EXISTS `tbl_C2_activity` (
   `C2_activity_achieved_fact` int(11) DEFAULT NULL,
   `C2_assignee_comment` varchar(1000) DEFAULT NULL,
   `C2_activity_locked` int(11) DEFAULT '0',
-  `C2_activity_created_at` datetime DEFAULT NULL,
-  `C2_activity_updated_at` datetime DEFAULT NULL,
+  `C2_activity_created_on` datetime DEFAULT NULL,
+  `C2_activity_updated_on` datetime DEFAULT NULL,
   PRIMARY KEY (`C2_activity_id`),
   KEY `tbl_C2_activity_fk_1` (`C2_project_id`),
   KEY `tbl_C2_activity_fk_3` (`C2_assignee_user_id`),
@@ -293,6 +293,95 @@ CREATE TRIGGER `tbl_C2_activity_AFTER_UPDATE` AFTER UPDATE ON `tbl_C2_activity` 
 				C2_log_on_field = 'LOCKED',
 				C2_log_old_content = OLD.C2_activity_locked,
 				C2_log_new_content = NEW.C2_activity_locked,
+				C2_log_created_on = NOW(); 
+	END IF;
+END
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tbl_C2_activity_comment`
+--
+
+DROP TABLE IF EXISTS `tbl_C2_activity_comment`;
+CREATE TABLE IF NOT EXISTS `tbl_C2_activity_comment` (
+  `C2_comment_id` varchar(200) NOT NULL,
+  `C2_project_id` varchar(200) NOT NULL,
+  `C2_assignee_user_id` varchar(200) NOT NULL,
+  `C2_activity_id` varchar(200) NOT NULL,
+  `C2_comment_description` varchar(1000) NOT NULL,
+  `C2_comment_created_on` datetime DEFAULT NULL,
+  `C2_comment_updated_on` datetime DEFAULT NULL,
+  PRIMARY KEY (`C2_comment_id`),
+  KEY `tbl_C2_activity_comment_fk_1` (`C2_project_id`),
+  KEY `tbl_C2_activity_comment_fk_2` (`C2_assignee_user_id`),
+  KEY `tbl_C2_activity_comment_fk_3` (`C2_activity_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Triggers `tbl_C2_activity_comment`
+--
+DROP TRIGGER IF EXISTS `tbl_C2_activity_comment_AFTER_DELETE`;
+DELIMITER $$
+CREATE TRIGGER `tbl_C2_activity_comment_AFTER_DELETE` AFTER DELETE ON `tbl_C2_activity_comment` FOR EACH ROW BEGIN
+	DECLARE user_id VARCHAR(200);
+
+    SELECT C2_user_id INTO user_id  FROM tbl_C2_current_operation_user;
+    
+    INSERT INTO tbl_C2_log_book
+			SET 
+				C2_log_operation = 'DELETE',
+				C2_user_id = user_id,
+                C2_project_id = OLD.C2_project_id,
+                C2_log_module = 'activity_comment',
+				C2_log_module_operation_id = OLD.C2_comment_id,
+                C2_log_on_field = 'COMMENT',
+				C2_log_old_content = OLD.C2_comment_description,
+				C2_log_created_on = NOW(); 
+END
+$$
+DELIMITER ;
+DROP TRIGGER IF EXISTS `tbl_C2_activity_comment_AFTER_INSERT`;
+DELIMITER $$
+CREATE TRIGGER `tbl_C2_activity_comment_AFTER_INSERT` AFTER INSERT ON `tbl_C2_activity_comment` FOR EACH ROW BEGIN
+	DECLARE user_id VARCHAR(200);
+
+    SELECT C2_user_id INTO user_id  FROM tbl_C2_current_operation_user;
+    
+    INSERT INTO tbl_C2_log_book
+			SET 
+				C2_log_operation = 'CREATE',
+				C2_user_id = user_id,
+                C2_project_id = NEW.C2_project_id,
+                C2_log_module = 'activity_comment',
+				C2_log_module_operation_id = NEW.C2_comment_id,
+                C2_log_on_field = 'COMMENT',
+				C2_log_old_content = NEW.C2_comment_description,
+				C2_log_created_on = NOW(); 
+END
+$$
+DELIMITER ;
+DROP TRIGGER IF EXISTS `tbl_C2_activity_comment_AFTER_UPDATE`;
+DELIMITER $$
+CREATE TRIGGER `tbl_C2_activity_comment_AFTER_UPDATE` AFTER UPDATE ON `tbl_C2_activity_comment` FOR EACH ROW BEGIN
+	DECLARE user_id VARCHAR(200);
+
+	SELECT C2_user_id INTO user_id  FROM tbl_C2_current_operation_user;
+	
+	/*if */
+	IF (OLD.C2_comment_description <> NEW.C2_comment_description) THEN
+		INSERT INTO tbl_C2_log_book
+			SET 
+				C2_log_operation = 'EDIT',
+				C2_user_id = user_id,
+				C2_project_id = OLD.C2_project_id,
+				C2_log_module = 'activity_comment',
+				C2_log_module_operation_id = OLD.C2_comment_id,
+				C2_log_on_field = 'COMMENT',
+				C2_log_old_content = OLD.C2_comment_description,
+				C2_log_new_content = NEW.C2_comment_description,
 				C2_log_created_on = NOW(); 
 	END IF;
 END
@@ -742,6 +831,8 @@ CREATE TABLE IF NOT EXISTS `tbl_C2_project_member_type` (
   `C2_crud_sprint` tinyint(4) DEFAULT '1',
   `C2_crud_goal` tinyint(4) DEFAULT '1',
   `C2_crud_activity` tinyint(4) DEFAULT '1',
+  `C2_crud_comment` tinyint(4) DEFAULT '1',
+  `C2_crud_review` tinyint(4) DEFAULT '1',
   PRIMARY KEY (`C2_project_member_type_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -986,6 +1077,14 @@ ALTER TABLE `tbl_C2_activity`
   ADD CONSTRAINT `tbl_C2_activity_fk_2` FOREIGN KEY (`C2_sprint_id`) REFERENCES `tbl_C2_sprint` (`C2_sprint_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   ADD CONSTRAINT `tbl_C2_activity_fk_3` FOREIGN KEY (`C2_assignee_user_id`) REFERENCES `tbl_C2_user` (`C2_user_id`),
   ADD CONSTRAINT `tbl_C2_activity_fk_4` FOREIGN KEY (`C2_goal_id`) REFERENCES `tbl_C2_goal` (`C2_goal_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `tbl_C2_activity_comment`
+--
+ALTER TABLE `tbl_C2_activity_comment`
+  ADD CONSTRAINT `tbl_C2_activity_comment_fk_1` FOREIGN KEY (`C2_project_id`) REFERENCES `tbl_C2_project` (`C2_project_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `tbl_C2_activity_comment_fk_2` FOREIGN KEY (`C2_assignee_user_id`) REFERENCES `tbl_C2_user` (`C2_user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `tbl_C2_activity_comment_fk_3` FOREIGN KEY (`C2_activity_id`) REFERENCES `tbl_C2_activity` (`C2_activity_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `tbl_C2_goal`

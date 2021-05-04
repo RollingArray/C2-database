@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: May 02, 2021 at 03:07 PM
+-- Generation Time: May 04, 2021 at 03:46 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -104,7 +104,9 @@ SELECT
     C2_crud_member AS crudMember,
     C2_crud_sprint AS crudSprint,
     C2_crud_goal AS crudGoal,
-    C2_crud_activity AS crudActivity
+    C2_crud_activity AS crudActivity,
+    C2_crud_comment AS crudComment,
+    C2_crud_review AS crudReview
 FROM 
     tbl_C2_project_member_type
 LEFT JOIN
@@ -126,6 +128,18 @@ BEGIN
 		tbl_C2_activity 
 	WHERE
 		C2_activity_id = activity_id;
+END$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_delete_comment` (IN `user_id` VARCHAR(200), IN `comment_id` VARCHAR(200), IN `project_id` VARCHAR(200))  NO SQL
+BEGIN
+	/*current user	*/
+	CALL sp_update_current_operation_user(user_id);
+    
+    DELETE
+    FROM
+		tbl_C2_activity_comment 
+	WHERE
+		C2_comment_id = comment_id;
 END$$
 
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_delete_goal` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `goal_id` VARCHAR(200), IN `goal_name` VARCHAR(200))  NO SQL
@@ -227,6 +241,8 @@ BEGIN
 		tbl_C2_activity.C2_project_id AS projectId,
 		tbl_C2_activity.C2_sprint_id AS sprintId,
         tbl_C2_activity.C2_assignee_user_id AS assigneeUserId,
+        tbl_C2_user.C2_user_first_name AS assigneeUserFirstName,
+        tbl_C2_user.C2_user_first_name AS assigneeUserLastName,
         tbl_C2_activity.C2_goal_id AS goalId,
         tbl_C2_activity.C2_activity_name AS activityName,
         tbl_C2_activity.C2_activity_weight AS activityWeight,
@@ -238,10 +254,20 @@ BEGIN
         tbl_C2_activity.C2_criteria_exceed_value AS criteriaExceedValue,
         tbl_C2_activity.C2_criteria_outstanding_value AS criteriaOutstandingValue,
         tbl_C2_activity.C2_characteristics_higher_better AS characteristicsHigherBetter,
-		DATE_FORMAT(tbl_C2_activity.C2_activity_created_at,'%D %b %Y %r') AS activityCreatedAt
+        tbl_C2_activity_comment.C2_comment_id AS commentId,
+        tbl_C2_activity_comment.C2_comment_description AS commentDescription,
+		DATE_FORMAT(tbl_C2_activity.C2_activity_created_on,'%D %b %Y %r') AS activityCreatedOn
 
 	FROM 
 		tbl_C2_activity
+	LEFT JOIN
+		tbl_C2_activity_comment
+	ON
+		tbl_C2_activity.C2_activity_id = tbl_C2_activity_comment.C2_activity_id
+	LEFT JOIN 
+		tbl_C2_user
+	ON
+		tbl_C2_activity.C2_assignee_user_id = tbl_C2_user.C2_user_id
 	WHERE 
 		tbl_C2_activity.C2_project_id = project_id
 	AND
@@ -1152,7 +1178,7 @@ BEGIN
             C2_criteria_exceed_value,
             C2_criteria_outstanding_value,
             C2_characteristics_higher_better,
-            C2_activity_created_at
+            C2_activity_created_on
         ) 
     values 
         (
@@ -1171,6 +1197,32 @@ BEGIN
             criteria_exceed_value,
             criteria_outstanding_value,
             characteristics_higher_better,
+            now()
+        );
+END$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_comment` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `activity_id` VARCHAR(200), IN `comment_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200), IN `comment_description` VARCHAR(1000))  NO SQL
+BEGIN
+    /*current user	*/
+	CALL sp_update_current_operation_user(user_id);
+    
+    INSERT INTO 
+    tbl_C2_activity_comment 
+        (
+			C2_activity_id, 
+            C2_project_id, 
+            C2_comment_id, 
+            C2_assignee_user_id,
+			C2_comment_description,
+            C2_comment_created_on
+        ) 
+    values 
+        (
+            activity_id, 
+            project_id, 
+            comment_id, 
+            assignee_user_id,
+			comment_description,
             now()
         );
 END$$
@@ -1801,9 +1853,23 @@ BEGIN
         C2_criteria_exceed_value = criteria_exceed_value,
         C2_criteria_outstanding_value = criteria_outstanding_value,
         C2_characteristics_higher_better = characteristics_higher_better,
-        C2_activity_updated_at = now()
+        C2_activity_updated_on = now()
 	WHERE
 		tbl_C2_activity.C2_activity_id = activity_id;
+END$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_comment` (IN `user_id` VARCHAR(200), IN `comment_id` VARCHAR(200), IN `comment_description` VARCHAR(1000))  NO SQL
+BEGIN
+    /*current user	*/
+	CALL sp_update_current_operation_user(user_id);
+    
+    UPDATE 
+        tbl_C2_activity_comment
+    SET
+        C2_comment_description = comment_description,
+        C2_comment_updated_on = now()
+    WHERE 
+        C2_comment_id = comment_id;
 END$$
 
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_current_operation_user` (IN `user_id` VARCHAR(200))  NO SQL
