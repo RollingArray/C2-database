@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: May 04, 2021 at 03:46 PM
+-- Generation Time: May 05, 2021 at 07:04 AM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -242,7 +242,7 @@ BEGIN
 		tbl_C2_activity.C2_sprint_id AS sprintId,
         tbl_C2_activity.C2_assignee_user_id AS assigneeUserId,
         tbl_C2_user.C2_user_first_name AS assigneeUserFirstName,
-        tbl_C2_user.C2_user_first_name AS assigneeUserLastName,
+        tbl_C2_user.C2_user_last_name AS assigneeUserLastName,
         tbl_C2_activity.C2_goal_id AS goalId,
         tbl_C2_activity.C2_activity_name AS activityName,
         tbl_C2_activity.C2_activity_weight AS activityWeight,
@@ -354,58 +354,6 @@ ON
 WHERE 
     tbl_C2_project_member_association.C2_user_id = user_id$$
 
-CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_project_administrators` (IN `project_id` VARCHAR(200))  BEGIN
-	SELECT
-		tbl_C2_project_member_association.C2_user_id AS userId,
-		tbl_C2_project_member_association.C2_project_id AS projectId,
-		tbl_C2_project_member_association.C2_project_user_type_id AS projectUserTypeId,
-		tbl_C2_project_member_type.C2_project_member_type_name AS projectMemberTypeName,
-		tbl_C2_user.C2_user_first_name AS userFirstName,
-		tbl_C2_user.C2_user_last_name AS userLastName,
-		tbl_C2_user.C2_user_email AS userEmail
-		
-	FROM 
-		tbl_C2_project_member_association
-	LEFT JOIN
-		tbl_C2_project_member_type
-	ON
-		tbl_C2_project_member_association.C2_project_user_type_id = tbl_C2_project_member_type.C2_project_member_type_id
-	LEFT JOIN
-		tbl_C2_user
-	ON
-		tbl_C2_project_member_association.C2_user_id = tbl_C2_user.C2_user_id
-	WHERE 
-		tbl_C2_project_member_association.C2_project_id = project_id
-	AND
-		tbl_C2_project_member_type.C2_project_member_type_id = 'PROJECTUSERTYPEID_0001';
-END$$
-
-CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_project_members` (IN `project_id` VARCHAR(200))  BEGIN
-	SELECT
-		tbl_C2_project_member_association.C2_user_id AS userId,
-		tbl_C2_project_member_association.C2_project_id AS projectId,
-		tbl_C2_project_member_association.C2_project_user_type_id AS projectUserTypeId,
-		tbl_C2_project_member_type.C2_project_member_type_name AS projectMemberTypeName,
-		tbl_C2_user.C2_user_first_name AS userFirstName,
-		tbl_C2_user.C2_user_last_name AS userLastName,
-		tbl_C2_user.C2_user_email AS userEmail
-		
-	FROM 
-		tbl_C2_project_member_association
-	LEFT JOIN
-		tbl_C2_project_member_type
-	ON
-		tbl_C2_project_member_association.C2_project_user_type_id = tbl_C2_project_member_type.C2_project_member_type_id
-	LEFT JOIN
-		tbl_C2_user
-	ON
-		tbl_C2_project_member_association.C2_user_id = tbl_C2_user.C2_user_id
-	WHERE 
-		tbl_C2_project_member_association.C2_project_id = project_id
-	AND
-		tbl_C2_project_member_type.C2_project_member_type_id = 'PROJECTUSERTYPEID_0002';
-END$$
-
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_project_settings` (IN `project_id` VARCHAR(200))  NO SQL
 SELECT 
                             tbl_C2_project_settings.C2_project_id AS projectId,
@@ -443,6 +391,32 @@ CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_project_users` (IN `
 		tbl_C2_project_member_association.C2_user_id = tbl_C2_user.C2_user_id
 	WHERE 
 		tbl_C2_project_member_association.C2_project_id = project_id;
+END$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_project_users_by_type` (IN `project_id` VARCHAR(200), IN `project_member_type_id` VARCHAR(200))  BEGIN
+	SELECT
+		tbl_C2_project_member_association.C2_user_id AS userId,
+		tbl_C2_project_member_association.C2_project_id AS projectId,
+		tbl_C2_project_member_association.C2_project_user_type_id AS projectUserTypeId,
+		tbl_C2_project_member_type.C2_project_member_type_name AS projectMemberTypeName,
+		tbl_C2_user.C2_user_first_name AS userFirstName,
+		tbl_C2_user.C2_user_last_name AS userLastName,
+		tbl_C2_user.C2_user_email AS userEmail
+		
+	FROM 
+		tbl_C2_project_member_association
+	LEFT JOIN
+		tbl_C2_project_member_type
+	ON
+		tbl_C2_project_member_association.C2_project_user_type_id = tbl_C2_project_member_type.C2_project_member_type_id
+	LEFT JOIN
+		tbl_C2_user
+	ON
+		tbl_C2_project_member_association.C2_user_id = tbl_C2_user.C2_user_id
+	WHERE 
+		tbl_C2_project_member_association.C2_project_id = project_id
+	AND
+		tbl_C2_project_member_type.C2_project_member_type_id = project_member_type_id;
 END$$
 
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_sprints` (IN `project_id` VARCHAR(200))  NO SQL
