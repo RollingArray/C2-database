@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: May 05, 2021 at 07:03 AM
+-- Generation Time: May 06, 2021 at 04:51 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -396,130 +396,19 @@ DELIMITER ;
 
 DROP TABLE IF EXISTS `tbl_C2_activity_review`;
 CREATE TABLE IF NOT EXISTS `tbl_C2_activity_review` (
-  `C2_activity_review_id` varchar(200) NOT NULL DEFAULT '',
-  `C2_project_id` varchar(200) DEFAULT NULL,
-  `C2_activity_id` varchar(200) NOT NULL DEFAULT '',
-  `C2_reviewer_user_id` varchar(200) NOT NULL DEFAULT '',
-  `C2_achieved_result_value` int(11) NOT NULL,
-  `C2_reviewer_comment` varchar(1000) NOT NULL,
+  `C2_activity_review_id` varchar(200) NOT NULL,
+  `C2_project_id` varchar(200) NOT NULL DEFAULT '',
+  `C2_activity_id` varchar(200) NOT NULL,
+  `C2_reviewer_user_id` varchar(200) NOT NULL,
+  `C2_achieved_result_value` int(11) DEFAULT NULL,
+  `C2_reviewer_comment` varchar(1000) DEFAULT '',
   `C2_activity_review_created_on` datetime DEFAULT NULL,
   `C2_activity_review_updated_on` datetime DEFAULT NULL,
   PRIMARY KEY (`C2_activity_review_id`),
-  KEY `tbl_C2_task_review_fk_1` (`C2_project_id`),
-  KEY `tbl_C2_task_review_fk_3` (`C2_activity_id`),
-  KEY `tbl_C2_task_review_fk_4` (`C2_reviewer_user_id`)
+  KEY `tbl_C2_activity_review_fk_1` (`C2_project_id`),
+  KEY `tbl_C2_activity_review_fk_2` (`C2_activity_id`),
+  KEY `tbl_C2_activity_review_fk_3` (`C2_reviewer_user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Triggers `tbl_C2_activity_review`
---
-DROP TRIGGER IF EXISTS `tbl_C2_task_review_AFTER_DELETE`;
-DELIMITER $$
-CREATE TRIGGER `tbl_C2_task_review_AFTER_DELETE` AFTER DELETE ON `tbl_C2_activity_review` FOR EACH ROW BEGIN
-	DECLARE user_id VARCHAR(200);
-
-    SELECT C2_user_id INTO user_id  FROM tbl_C2_current_operation_user;
-	
-    INSERT INTO tbl_C2_log_book
-			SET 
-				C2_log_operation = 'DELETE',
-				C2_user_id = user_id,
-				C2_project_id = OLD.C2_project_id,
-				C2_log_module = 'TASK_REVIEW',
-				C2_log_module_operation_id = OLD.C2_task_review_id,
-				C2_log_created_on = NOW(); 		
-END
-$$
-DELIMITER ;
-DROP TRIGGER IF EXISTS `tbl_C2_task_review_AFTER_INSERT`;
-DELIMITER $$
-CREATE TRIGGER `tbl_C2_task_review_AFTER_INSERT` AFTER INSERT ON `tbl_C2_activity_review` FOR EACH ROW BEGIN
-	DECLARE user_id VARCHAR(200);
-
-    SELECT C2_user_id INTO user_id  FROM tbl_C2_current_operation_user;
-    
-    INSERT INTO 
-		tbl_C2_log_book
-	SET 
-		C2_log_operation = 'CREATE',
-		C2_user_id = user_id,
-		C2_project_id = NEW.C2_project_id,
-		C2_log_module = 'TASK_REVIEW',
-		C2_log_module_operation_id = CONCAT(NEW.C2_task_review_id,' ', NEW.C2_task_id),
-		C2_log_created_on = NOW(); 
-                
-END
-$$
-DELIMITER ;
-DROP TRIGGER IF EXISTS `tbl_C2_task_review_AFTER_UPDATE`;
-DELIMITER $$
-CREATE TRIGGER `tbl_C2_task_review_AFTER_UPDATE` AFTER UPDATE ON `tbl_C2_activity_review` FOR EACH ROW BEGIN
-	DECLARE user_id VARCHAR(200);
-
-	SELECT C2_user_id INTO user_id  FROM tbl_C2_current_operation_user;
-    
-	/*if different task review sprint*/
-	IF (OLD.C2_sprint_id <> NEW.C2_sprint_id) THEN
-    INSERT INTO tbl_C2_log_book
-       SET 
-         C2_log_operation = 'EDIT',
-         C2_user_id = user_id,
-         C2_project_id = OLD.C2_project_id,
-         C2_log_module = 'TASK_REVIEW',
-         C2_log_module_operation_id = OLD.C2_task_review_id,
-         C2_log_on_field = 'TASK_REVIEW_SPRINT',
-         C2_log_old_content = OLD.C2_sprint_id,
-         C2_log_new_content = NEW.C2_sprint_id,
-         C2_log_created_on = NOW(); 
-	END IF;
-
-  /*if different task review sprint*/
-	IF (OLD.C2_sprint_id <> NEW.C2_sprint_id) THEN
-    INSERT INTO tbl_C2_log_book
-       SET 
-         C2_log_operation = 'EDIT',
-         C2_user_id = user_id,
-         C2_project_id = OLD.C2_project_id,
-         C2_log_module = 'TASK_REVIEW',
-         C2_log_module_operation_id = OLD.C2_task_review_id,
-         C2_log_on_field = 'TASK_REVIEW_REVIEWER',
-         C2_log_old_content = OLD.C2_reviewer_user_id,
-         C2_log_new_content = NEW.C2_reviewer_user_id,
-         C2_log_created_on = NOW(); 
-	END IF;
-
-  /*if different task review achieved result value*/
-	IF (OLD.C2_achieved_result_value <> NEW.C2_achieved_result_value) THEN
-    INSERT INTO tbl_C2_log_book
-       SET 
-         C2_log_operation = 'EDIT',
-         C2_user_id = user_id,
-         C2_project_id = OLD.C2_project_id,
-         C2_log_module = 'TASK_REVIEW',
-         C2_log_module_operation_id = OLD.C2_task_review_id,
-         C2_log_on_field = 'TASK_REVIEW_ACHIEVED_RESULT_VALUE',
-         C2_log_old_content = OLD.C2_achieved_result_value,
-         C2_log_new_content = NEW.C2_achieved_result_value,
-         C2_log_created_on = NOW(); 
-	END IF;
-
-  /*if different task review reviewer comment*/
-	IF (OLD.C2_reviewer_comment <> NEW.C2_reviewer_comment) THEN
-    INSERT INTO tbl_C2_log_book
-       SET 
-         C2_log_operation = 'EDIT',
-         C2_user_id = user_id,
-         C2_project_id = OLD.C2_project_id,
-         C2_log_module = 'TASK_REVIEW',
-         C2_log_module_operation_id = OLD.C2_task_review_id,
-         C2_log_on_field = 'TASK_REVIEW_REVIEWER_COMMENT',
-         C2_log_old_content = OLD.C2_reviewer_comment,
-         C2_log_new_content = NEW.C2_reviewer_comment,
-         C2_log_created_on = NOW(); 
-	END IF;
-END
-$$
-DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -832,6 +721,7 @@ CREATE TABLE IF NOT EXISTS `tbl_C2_project_member_type` (
   `C2_crud_goal` tinyint(4) DEFAULT '1',
   `C2_crud_activity` tinyint(4) DEFAULT '1',
   `C2_crud_comment` tinyint(4) DEFAULT '1',
+  `C2_crud_reviewer` tinyint(4) DEFAULT '1',
   `C2_crud_review` tinyint(4) DEFAULT '1',
   PRIMARY KEY (`C2_project_member_type_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -1085,6 +975,14 @@ ALTER TABLE `tbl_C2_activity_comment`
   ADD CONSTRAINT `tbl_C2_activity_comment_fk_1` FOREIGN KEY (`C2_project_id`) REFERENCES `tbl_C2_project` (`C2_project_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `tbl_C2_activity_comment_fk_2` FOREIGN KEY (`C2_assignee_user_id`) REFERENCES `tbl_C2_user` (`C2_user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `tbl_C2_activity_comment_fk_3` FOREIGN KEY (`C2_activity_id`) REFERENCES `tbl_C2_activity` (`C2_activity_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `tbl_C2_activity_review`
+--
+ALTER TABLE `tbl_C2_activity_review`
+  ADD CONSTRAINT `tbl_C2_activity_review_fk_1` FOREIGN KEY (`C2_project_id`) REFERENCES `tbl_C2_project` (`C2_project_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `tbl_C2_activity_review_fk_2` FOREIGN KEY (`C2_activity_id`) REFERENCES `tbl_C2_activity` (`C2_activity_id`),
+  ADD CONSTRAINT `tbl_C2_activity_review_fk_3` FOREIGN KEY (`C2_reviewer_user_id`) REFERENCES `tbl_C2_user` (`C2_user_id`);
 
 --
 -- Constraints for table `tbl_C2_goal`

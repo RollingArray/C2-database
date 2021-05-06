@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: May 05, 2021 at 07:04 AM
+-- Generation Time: May 06, 2021 at 04:51 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -106,6 +106,7 @@ SELECT
     C2_crud_goal AS crudGoal,
     C2_crud_activity AS crudActivity,
     C2_crud_comment AS crudComment,
+    C2_crud_reviewer AS crudReviewer,
     C2_crud_review AS crudReview
 FROM 
     tbl_C2_project_member_type
@@ -128,6 +129,18 @@ BEGIN
 		tbl_C2_activity 
 	WHERE
 		C2_activity_id = activity_id;
+END$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_delete_activity_reviewer` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `activity_review_id` VARCHAR(200))  NO SQL
+BEGIN
+    /*current user	*/
+	CALL sp_update_current_operation_user(user_id);
+
+    DELETE 
+	FROM 
+		tbl_C2_activity_review 
+	WHERE 
+		C2_activity_review_id = activity_review_id;
 END$$
 
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_delete_comment` (IN `user_id` VARCHAR(200), IN `comment_id` VARCHAR(200), IN `project_id` VARCHAR(200))  NO SQL
@@ -209,6 +222,75 @@ UPDATE
 			C2_user_updated_at = now()
 		WHERE 
 			C2_user_email = user_email$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_activity_details` (IN `activity_id` VARCHAR(200))  NO SQL
+BEGIN
+	SELECT
+		tbl_C2_activity.C2_activity_id AS activityId,
+		tbl_C2_activity.C2_project_id AS projectId,
+		tbl_C2_activity.C2_sprint_id AS sprintId,
+        tbl_C2_activity.C2_assignee_user_id AS assigneeUserId,
+        tbl_C2_user.C2_user_first_name AS assigneeUserFirstName,
+        tbl_C2_user.C2_user_last_name AS assigneeUserLastName,
+        tbl_C2_activity.C2_goal_id AS goalId,
+        tbl_C2_activity.C2_activity_name AS activityName,
+        tbl_C2_activity.C2_activity_weight AS activityWeight,
+        tbl_C2_activity.C2_activity_measurement_type AS activityMeasurementType,
+        tbl_C2_activity.C2_activity_result_type AS activityResultType,
+        tbl_C2_activity.C2_criteria_poor_value AS criteriaPoorValue,
+        tbl_C2_activity.C2_criteria_improvement_value AS criteriaImprovementValue,
+        tbl_C2_activity.C2_criteria_expectation_value AS criteriaExpectationValue,
+        tbl_C2_activity.C2_criteria_exceed_value AS criteriaExceedValue,
+        tbl_C2_activity.C2_criteria_outstanding_value AS criteriaOutstandingValue,
+        tbl_C2_activity.C2_characteristics_higher_better AS characteristicsHigherBetter,
+        tbl_C2_activity_comment.C2_comment_id AS commentId,
+        tbl_C2_activity_comment.C2_comment_description AS commentDescription,
+		DATE_FORMAT(tbl_C2_activity.C2_activity_created_on,'%D %b %Y %r') AS activityCreatedOn
+
+	FROM 
+		tbl_C2_activity
+	LEFT JOIN
+		tbl_C2_activity_comment
+	ON
+		tbl_C2_activity.C2_activity_id = tbl_C2_activity_comment.C2_activity_id
+	LEFT JOIN 
+		tbl_C2_user
+	ON
+		tbl_C2_activity.C2_assignee_user_id = tbl_C2_user.C2_user_id
+	WHERE 
+		tbl_C2_activity.C2_activity_id = activity_id;
+END$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_activity_review_details` (IN `activity_id` VARCHAR(200))  NO SQL
+BEGIN
+	SELECT
+		tbl_C2_activity_review.C2_activity_id AS activityId,
+		tbl_C2_activity_review.C2_project_id AS projectId,
+        tbl_C2_activity_review.C2_activity_review_id AS activityReviewId,
+        tbl_C2_activity_review.C2_reviewer_user_id AS reviewerUserId,
+        tbl_C2_user.C2_user_first_name AS reviewerUserFirstName,
+        tbl_C2_user.C2_user_last_name AS reviewerUserLastName,
+        tbl_C2_activity_review.C2_achieved_result_value AS achievedResultValue,
+        tbl_C2_activity_review.C2_reviewer_comment AS reviewerComment,
+        tbl_C2_activity.C2_activity_measurement_type AS activityMeasurementType,
+        tbl_C2_activity.C2_activity_result_type AS activityResultType,
+        tbl_C2_activity.C2_criteria_poor_value AS criteriaPoorValue,
+        tbl_C2_activity.C2_criteria_outstanding_value AS criteriaOutstandingValue,
+		DATE_FORMAT(tbl_C2_activity_review.C2_activity_review_created_on,'%D %b %Y %r') AS activityReviewCreatedOn,
+		DATE_FORMAT(tbl_C2_activity_review.C2_activity_review_updated_on,'%D %b %Y %r') AS activityReviewUpdatedOn
+	FROM 
+		tbl_C2_activity_review
+	LEFT JOIN 
+		tbl_C2_user
+	ON
+		tbl_C2_activity_review.C2_reviewer_user_id = tbl_C2_user.C2_user_id
+	LEFT JOIN
+		tbl_C2_activity
+	ON
+		tbl_C2_activity_review.C2_activity_id = tbl_C2_activity.C2_activity_id
+	WHERE 
+		tbl_C2_activity_review.C2_activity_id = activity_id;
+END$$
 
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_access_privilege_details` ()  NO SQL
 SELECT 
@@ -977,6 +1059,18 @@ FROM
 WHERE 
 	C2_sprint_id = sprint_id$$
 
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_added_reviewer_already_same_in_activity` (IN `activity_id` VARCHAR(200), IN `reviewer_user_id` VARCHAR(200))  NO SQL
+BEGIN
+    SELECT 
+        tbl_C2_activity_review.C2_activity_review_id
+    FROM 
+        tbl_C2_activity_review
+    WHERE 
+        tbl_C2_activity_review.C2_activity_id = activity_id
+    AND 
+        tbl_C2_activity_review.C2_reviewer_user_id = reviewer_user_id;
+END$$
+
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_domain_already_exist` (IN `user_domain` VARCHAR(200))  NO SQL
 SELECT 
                             C2_domain_id AS domainId
@@ -1075,6 +1169,18 @@ FROM
 WHERE 
     tbl_C2_project.C2_project_name = project_name$$
 
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_reviewer_already_reviewed_activity` (IN `activity_id` VARCHAR(200), IN `reviewer_user_id` VARCHAR(200))  NO SQL
+BEGIN
+    SELECT 
+        tbl_C2_activity_review.C2_achieved_result_value AS achievedResultValue
+    FROM 
+        tbl_C2_activity_review
+    WHERE 
+        tbl_C2_activity_review.C2_activity_id = activity_id
+    AND 
+        tbl_C2_activity_review.C2_reviewer_user_id = reviewer_user_id;
+END$$
+
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_sprint_already_created_for_same_project` (IN `sprint_name` VARCHAR(200), IN `project_id` VARCHAR(200))  NO SQL
 SELECT 
     tbl_C2_sprint.C2_sprint_id
@@ -1171,6 +1277,33 @@ BEGIN
             criteria_exceed_value,
             criteria_outstanding_value,
             characteristics_higher_better,
+            now()
+        );
+END$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_activity_reviewer` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `activity_id` VARCHAR(200), IN `activity_review_id` VARCHAR(200), IN `reviewer_user_id` VARCHAR(200))  NO SQL
+BEGIN
+	SET @Query = '",activity_review_id,"';
+    INSERT INTO tbl_C2_sp_log VALUES(@Query);
+    
+    /*current user	*/
+	CALL sp_update_current_operation_user(user_id);
+    
+    INSERT INTO 
+    tbl_C2_activity_review 
+        (
+			C2_activity_review_id, 
+            C2_project_id, 
+            C2_activity_id,
+            C2_reviewer_user_id,
+            C2_activity_review_created_on
+        ) 
+    values 
+        (
+            activity_review_id, 
+            project_id, 
+            activity_id,
+            reviewer_user_id,
             now()
         );
 END$$
@@ -1830,6 +1963,21 @@ BEGIN
         C2_activity_updated_on = now()
 	WHERE
 		tbl_C2_activity.C2_activity_id = activity_id;
+END$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_activity_review` (IN `user_id` VARCHAR(200), IN `activity_review_id` VARCHAR(200), IN `achieved_result_value` INT(11), IN `reviewer_comment` VARCHAR(1000))  NO SQL
+BEGIN
+	/*current user	*/
+	CALL sp_update_current_operation_user(user_id);
+    
+    UPDATE
+		tbl_C2_activity_review 
+	SET
+		tbl_C2_activity_review.C2_achieved_result_value = achieved_result_value,
+        tbl_C2_activity_review.C2_reviewer_comment = reviewer_comment,
+        tbl_C2_activity_review.C2_activity_review_updated_on = now()
+	WHERE
+		tbl_C2_activity_review.C2_activity_review_id = activity_review_id;
 END$$
 
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_comment` (IN `user_id` VARCHAR(200), IN `comment_id` VARCHAR(200), IN `comment_description` VARCHAR(1000))  NO SQL
