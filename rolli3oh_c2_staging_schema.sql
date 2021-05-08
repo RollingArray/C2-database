@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: May 07, 2021 at 03:08 PM
+-- Generation Time: May 08, 2021 at 03:12 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS `tbl_C2_activity` (
   `C2_criteria_outstanding_value` int(11) DEFAULT NULL,
   `C2_characteristics_higher_better` int(11) DEFAULT '1',
   `C2_activity_achieved_fact` int(11) DEFAULT NULL,
+  `C2_activity_review_performance` double(10,2) DEFAULT NULL,
   `C2_assignee_comment` varchar(1000) DEFAULT NULL,
   `C2_activity_locked` int(11) DEFAULT '0',
   `C2_activity_created_on` datetime DEFAULT NULL,
@@ -402,6 +403,8 @@ CREATE TABLE IF NOT EXISTS `tbl_C2_activity_review` (
   `C2_activity_id` varchar(200) NOT NULL,
   `C2_reviewer_user_id` varchar(200) NOT NULL,
   `C2_achieved_result_value` int(11) DEFAULT NULL,
+  `C2_performance_value` double(10,2) DEFAULT NULL,
+  `C2_weighted_performance_value` double(10,2) DEFAULT NULL,
   `C2_reviewer_comment` varchar(1000) DEFAULT '',
   `C2_activity_review_created_on` datetime DEFAULT NULL,
   `C2_activity_review_updated_on` datetime DEFAULT NULL,
@@ -636,6 +639,7 @@ CREATE TABLE IF NOT EXISTS `tbl_C2_project_member_association` (
   `C2_user_id` varchar(200) NOT NULL,
   `C2_project_id` varchar(200) NOT NULL,
   `C2_project_user_type_id` varchar(200) NOT NULL,
+  `C2_user_credibility_score` double(10,2) DEFAULT NULL,
   `C2_project_member_created_on` datetime DEFAULT NULL,
   `C2_project_member_updated_on` datetime DEFAULT NULL,
   KEY `C2_project_id` (`C2_project_id`),

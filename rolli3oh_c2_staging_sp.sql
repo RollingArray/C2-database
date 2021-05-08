@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: May 07, 2021 at 03:08 PM
+-- Generation Time: May 08, 2021 at 03:13 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -223,6 +223,20 @@ UPDATE
 		WHERE 
 			C2_user_email = user_email$$
 
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_activity_assignee` (IN `user_id` VARCHAR(200), IN `activity_id` VARCHAR(200))  NO SQL
+BEGIN
+	/*current user	*/
+	CALL sp_update_current_operation_user(user_id);
+    
+    SELECT
+		tbl_C2_activity.C2_assignee_user_id AS assigneeUserId,
+        tbl_C2_activity.C2_project_id AS project_id
+	FROM
+		tbl_C2_activity
+	WHERE
+		tbl_C2_activity.C2_activity_id = activity_id;
+END$$
+
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_activity_details` (IN `activity_id` VARCHAR(200))  NO SQL
 BEGIN
 	SELECT
@@ -258,6 +272,19 @@ BEGIN
 		tbl_C2_user
 	ON
 		tbl_C2_activity.C2_assignee_user_id = tbl_C2_user.C2_user_id
+	WHERE 
+		tbl_C2_activity.C2_activity_id = activity_id;
+END$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_activity_performance_calculation_facts` (IN `activity_id` VARCHAR(200))  NO SQL
+BEGIN
+	SELECT
+		tbl_C2_activity.C2_activity_weight AS activityWeight,
+        tbl_C2_activity.C2_criteria_poor_value AS criteriaPoorValue,
+        tbl_C2_activity.C2_criteria_outstanding_value AS criteriaOutstandingValue,
+        tbl_C2_activity.C2_characteristics_higher_better AS characteristicsHigherBetter
+	FROM 
+		tbl_C2_activity
 	WHERE 
 		tbl_C2_activity.C2_activity_id = activity_id;
 END$$
@@ -360,6 +387,47 @@ BEGIN
 		tbl_C2_activity.C2_goal_id = goal_id
 	AND
 		tbl_C2_activity.C2_assignee_user_id = assignee_user_id;
+END$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_activity_performance_for_assignee` (IN `assignee_user_id` VARCHAR(200))  NO SQL
+BEGIN
+    SELECT
+		tbl_C2_activity.C2_activity_id AS activityId,
+        tbl_C2_activity.C2_activity_weight AS activityWeight,
+        tbl_C2_activity.C2_activity_review_performance AS activityReviewPerformance
+	FROM
+		tbl_C2_activity
+	WHERE
+		tbl_C2_activity.C2_assignee_user_id = assignee_user_id;
+END$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_assignee_credibility_index` (IN `project_id` VARCHAR(200), IN `project_member_type_id` VARCHAR(200))  BEGIN
+	SELECT
+		tbl_C2_project_member_association.C2_user_id AS userId,
+		tbl_C2_project_member_association.C2_project_id AS projectId,
+		tbl_C2_project_member_association.C2_project_user_type_id AS projectUserTypeId,
+		tbl_C2_project_member_type.C2_project_member_type_name AS projectMemberTypeName,
+		tbl_C2_user.C2_user_first_name AS userFirstName,
+		tbl_C2_user.C2_user_last_name AS userLastName,
+		tbl_C2_user.C2_user_email AS userEmail,
+        tbl_C2_project_member_association.C2_user_credibility_score AS userCredibilityScore
+		
+	FROM 
+		tbl_C2_project_member_association
+	LEFT JOIN
+		tbl_C2_project_member_type
+	ON
+		tbl_C2_project_member_association.C2_project_user_type_id = tbl_C2_project_member_type.C2_project_member_type_id
+	LEFT JOIN
+		tbl_C2_user
+	ON
+		tbl_C2_project_member_association.C2_user_id = tbl_C2_user.C2_user_id
+	WHERE 
+		tbl_C2_project_member_association.C2_project_id = project_id
+	AND
+		tbl_C2_project_member_type.C2_project_member_type_id = project_member_type_id
+	ORDER BY
+		userCredibilityScore ASC;
 END$$
 
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_goals` (IN `project_id` VARCHAR(200))  NO SQL
@@ -501,6 +569,40 @@ CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_project_users_by_typ
 		tbl_C2_project_member_association.C2_project_id = project_id
 	AND
 		tbl_C2_project_member_type.C2_project_member_type_id = project_member_type_id;
+END$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_reviews_for_activity` (IN `activity_id` VARCHAR(200))  NO SQL
+BEGIN
+	SELECT
+		tbl_C2_activity_review.C2_weighted_performance_value AS weightedPerformanceValue
+	FROM 
+		tbl_C2_activity_review
+	WHERE 
+		tbl_C2_activity_review.C2_activity_id = activity_id;
+END$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_reviews_for_assignee_for_project` (IN `project_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200))  NO SQL
+BEGIN
+	SELECT
+		tbl_C2_activity_review.C2_activity_id AS activityId,
+        tbl_C2_activity_review.C2_activity_review_id AS activityReviewId,
+        tbl_C2_activity_review.C2_achieved_result_value AS achievedResultValue,
+        tbl_C2_activity.C2_criteria_poor_value AS criteriaPoorValue,
+        tbl_C2_activity.C2_criteria_improvement_value AS criteriaImprovementValue,
+        tbl_C2_activity.C2_criteria_expectation_value AS criteriaExpectationValue,
+        tbl_C2_activity.C2_criteria_exceed_value AS criteriaExceedValue,
+        tbl_C2_activity.C2_criteria_outstanding_value AS criteriaOutstandingValue,
+        tbl_C2_activity.C2_characteristics_higher_better AS characteristicsHigherBetter
+	FROM 
+		tbl_C2_activity_review
+	LEFT JOIN
+		tbl_C2_activity
+	ON
+		tbl_C2_activity_review.C2_activity_id = tbl_C2_activity.C2_activity_id
+	WHERE 
+		tbl_C2_activity.C2_assignee_user_id = assignee_user_id
+	AND
+		tbl_C2_activity.C2_project_id = project_id;
 END$$
 
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_sprints` (IN `project_id` VARCHAR(200))  NO SQL
@@ -749,6 +851,26 @@ CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_user_story_for_proje
 		tbl_C2_user_story
 	WHERE 
 		C2_project_id = project_id;
+END$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_assignee_credibility_score` (IN `project_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200))  BEGIN
+	SELECT
+		tbl_C2_project_member_association.C2_user_id AS userId,
+		tbl_C2_project_member_association.C2_project_id AS projectId,
+		tbl_C2_user.C2_user_first_name AS userFirstName,
+		tbl_C2_user.C2_user_last_name AS userLastName,
+		tbl_C2_user.C2_user_email AS userEmail,
+        tbl_C2_project_member_association.C2_user_credibility_score AS userCredibilityScore
+	FROM 
+		tbl_C2_project_member_association
+	LEFT JOIN
+		tbl_C2_user
+	ON
+		tbl_C2_project_member_association.C2_user_id = tbl_C2_user.C2_user_id
+	WHERE 
+		tbl_C2_project_member_association.C2_project_id = project_id
+	AND
+		tbl_C2_project_member_association.C2_user_id = assignee_user_id;
 END$$
 
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_basic_project_details` (IN `project_id` VARCHAR(200))  NO SQL
@@ -1969,7 +2091,7 @@ BEGIN
 		tbl_C2_activity.C2_activity_id = activity_id;
 END$$
 
-CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_activity_review` (IN `user_id` VARCHAR(200), IN `activity_review_id` VARCHAR(200), IN `achieved_result_value` INT(11), IN `reviewer_comment` VARCHAR(1000))  NO SQL
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_activity_review` (IN `user_id` VARCHAR(200), IN `activity_review_id` VARCHAR(200), IN `achieved_result_value` INT(11), IN `performance_value` DOUBLE(10,2), IN `weighted_performance_value` DOUBLE(10,2), IN `reviewer_comment` VARCHAR(1000))  NO SQL
 BEGIN
 	/*current user	*/
 	CALL sp_update_current_operation_user(user_id);
@@ -1978,10 +2100,26 @@ BEGIN
 		tbl_C2_activity_review 
 	SET
 		tbl_C2_activity_review.C2_achieved_result_value = achieved_result_value,
+        tbl_C2_activity_review.C2_performance_value = performance_value,
+        tbl_C2_activity_review.C2_weighted_performance_value = weighted_performance_value,
         tbl_C2_activity_review.C2_reviewer_comment = reviewer_comment,
         tbl_C2_activity_review.C2_activity_review_updated_on = now()
 	WHERE
 		tbl_C2_activity_review.C2_activity_review_id = activity_review_id;
+END$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_activity_review_performance` (IN `user_id` VARCHAR(200), IN `activity_id` VARCHAR(200), IN `activity_review_performance` DOUBLE(10,2))  NO SQL
+BEGIN
+	/*current user	*/
+	CALL sp_update_current_operation_user(user_id);
+    
+    UPDATE
+		tbl_C2_activity 
+	SET
+		C2_activity_review_performance = activity_review_performance,
+        C2_activity_updated_on = now()
+	WHERE
+		tbl_C2_activity.C2_activity_id = activity_id;
 END$$
 
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_comment` (IN `user_id` VARCHAR(200), IN `comment_id` VARCHAR(200), IN `comment_description` VARCHAR(1000), IN `claimed_result_value` INT(11))  NO SQL
@@ -2136,6 +2274,22 @@ BEGIN
         C2_sprint_id = sprint_id
     AND 
         C2_task_id = task_id;
+END$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_user_credibility_score` (IN `user_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `user_credibility_score` DOUBLE(10,2))  NO SQL
+BEGIN
+	/*current user	*/
+	CALL sp_update_current_operation_user(user_id);
+    
+    UPDATE
+		tbl_C2_project_member_association 
+	SET
+		C2_user_credibility_score = user_credibility_score,
+        C2_project_member_updated_on = now()
+	WHERE
+		C2_user_id = assignee_user_id
+	AND
+		C2_project_id = project_id;
 END$$
 
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_user_story` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `user_story_id` VARCHAR(200), IN `user_story_name` VARCHAR(200), IN `user_story_description` VARCHAR(400))  NO SQL
