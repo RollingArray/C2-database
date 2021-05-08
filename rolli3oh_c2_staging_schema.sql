@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: May 06, 2021 at 04:51 PM
+-- Generation Time: May 07, 2021 at 03:08 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -311,6 +311,7 @@ CREATE TABLE IF NOT EXISTS `tbl_C2_activity_comment` (
   `C2_project_id` varchar(200) NOT NULL,
   `C2_assignee_user_id` varchar(200) NOT NULL,
   `C2_activity_id` varchar(200) NOT NULL,
+  `C2_claimed_result_value` int(11) DEFAULT NULL,
   `C2_comment_description` varchar(1000) NOT NULL,
   `C2_comment_created_on` datetime DEFAULT NULL,
   `C2_comment_updated_on` datetime DEFAULT NULL,

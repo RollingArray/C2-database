@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: May 06, 2021 at 04:51 PM
+-- Generation Time: May 07, 2021 at 03:08 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -245,6 +245,7 @@ BEGIN
         tbl_C2_activity.C2_characteristics_higher_better AS characteristicsHigherBetter,
         tbl_C2_activity_comment.C2_comment_id AS commentId,
         tbl_C2_activity_comment.C2_comment_description AS commentDescription,
+        tbl_C2_activity_comment.C2_claimed_result_value AS claimedResultValue,
 		DATE_FORMAT(tbl_C2_activity.C2_activity_created_on,'%D %b %Y %r') AS activityCreatedOn
 
 	FROM 
@@ -338,6 +339,7 @@ BEGIN
         tbl_C2_activity.C2_characteristics_higher_better AS characteristicsHigherBetter,
         tbl_C2_activity_comment.C2_comment_id AS commentId,
         tbl_C2_activity_comment.C2_comment_description AS commentDescription,
+        tbl_C2_activity_comment.C2_claimed_result_value AS claimedResultValue,
 		DATE_FORMAT(tbl_C2_activity.C2_activity_created_on,'%D %b %Y %r') AS activityCreatedOn
 
 	FROM 
@@ -1308,7 +1310,7 @@ BEGIN
         );
 END$$
 
-CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_comment` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `activity_id` VARCHAR(200), IN `comment_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200), IN `comment_description` VARCHAR(1000))  NO SQL
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_comment` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `activity_id` VARCHAR(200), IN `comment_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200), IN `comment_description` VARCHAR(1000), IN `claimed_result_value` INT(11))  NO SQL
 BEGIN
     /*current user	*/
 	CALL sp_update_current_operation_user(user_id);
@@ -1321,6 +1323,7 @@ BEGIN
             C2_comment_id, 
             C2_assignee_user_id,
 			C2_comment_description,
+            C2_claimed_result_value,
             C2_comment_created_on
         ) 
     values 
@@ -1330,6 +1333,7 @@ BEGIN
             comment_id, 
             assignee_user_id,
 			comment_description,
+            claimed_result_value,
             now()
         );
 END$$
@@ -1980,7 +1984,7 @@ BEGIN
 		tbl_C2_activity_review.C2_activity_review_id = activity_review_id;
 END$$
 
-CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_comment` (IN `user_id` VARCHAR(200), IN `comment_id` VARCHAR(200), IN `comment_description` VARCHAR(1000))  NO SQL
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_comment` (IN `user_id` VARCHAR(200), IN `comment_id` VARCHAR(200), IN `comment_description` VARCHAR(1000), IN `claimed_result_value` INT(11))  NO SQL
 BEGIN
     /*current user	*/
 	CALL sp_update_current_operation_user(user_id);
@@ -1989,6 +1993,7 @@ BEGIN
         tbl_C2_activity_comment
     SET
         C2_comment_description = comment_description,
+        C2_claimed_result_value = claimed_result_value,
         C2_comment_updated_on = now()
     WHERE 
         C2_comment_id = comment_id;
