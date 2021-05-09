@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: May 09, 2021 at 01:44 PM
+-- Generation Time: May 09, 2021 at 03:31 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -495,6 +495,7 @@ SELECT
     tbl_C2_project.C2_project_id AS projectId,
     tbl_C2_project.C2_project_name AS projectName,
     tbl_C2_project.C2_project_description AS projectDescription,
+    tbl_C2_project_member_association.C2_project_user_type_id AS projectUserTypeId,
     DATE_FORMAT(tbl_C2_project.C2_project_created_on,'%D %b %Y %r') AS projectCreatedOn
 
 FROM 
