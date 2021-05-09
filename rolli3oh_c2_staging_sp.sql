@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: May 08, 2021 at 03:13 PM
+-- Generation Time: May 09, 2021 at 01:44 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -968,6 +968,58 @@ SELECT
                         WHERE 
                             C2_project_id = project_id$$
 
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_my_activities_for_project` (IN `project_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200))  NO SQL
+BEGIN
+	SELECT
+		tbl_C2_activity.C2_activity_id AS activityId,
+        tbl_C2_activity.C2_activity_name AS activityName,
+		tbl_C2_activity.C2_project_id AS projectId,
+		tbl_C2_activity.C2_assignee_user_id AS assigneeUserId,
+        tbl_C2_user.C2_user_first_name AS assigneeUserFirstName,
+        tbl_C2_user.C2_user_last_name AS assigneeUserLastName,
+        DATE_FORMAT(tbl_C2_activity.C2_activity_created_on,'%D %b %Y %r') AS activityCreatedOn
+	FROM 
+		tbl_C2_activity
+	LEFT JOIN 
+		tbl_C2_user
+	ON
+		tbl_C2_activity.C2_assignee_user_id = tbl_C2_user.C2_user_id
+	WHERE 
+		tbl_C2_activity.C2_project_id = project_id
+	AND
+		tbl_C2_activity.C2_assignee_user_id = assignee_user_id
+    ORDER BY
+        activityCreatedOn ASC;
+END$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_my_reviews_for_project` (IN `project_id` VARCHAR(200), IN `reviewer_user_id` VARCHAR(200))  NO SQL
+BEGIN
+	SELECT
+		tbl_C2_activity_review.C2_reviewer_user_id AS reviewerUserId,
+        tbl_C2_activity_review.C2_activity_id AS activityId,
+        tbl_C2_activity.C2_activity_name AS activityName,
+		tbl_C2_activity.C2_project_id AS projectId,
+		tbl_C2_user.C2_user_first_name AS reviewerUserFirstName,
+        tbl_C2_user.C2_user_last_name AS reviewerUserLastName,
+        DATE_FORMAT(tbl_C2_activity.C2_activity_created_on,'%D %b %Y %r') AS activityCreatedOn
+	FROM 
+		tbl_C2_activity_review
+	LEFT JOIN 
+		tbl_C2_user
+	ON
+		tbl_C2_activity_review.C2_reviewer_user_id = tbl_C2_user.C2_user_id
+    LEFT JOIN
+        tbl_C2_activity
+    ON
+        tbl_C2_activity_review.C2_activity_id = tbl_C2_activity.C2_activity_id
+	WHERE 
+		tbl_C2_activity_review.C2_project_id = project_id
+	AND
+		tbl_C2_activity_review.C2_reviewer_user_id = reviewer_user_id
+    ORDER BY
+        activityCreatedOn ASC;
+END$$
+
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_no_sprint_id_for_project` (IN `project_id` VARCHAR(200))  NO SQL
 SELECT 
                             C2_sprint_id as sprintId
@@ -1242,6 +1294,30 @@ WHERE
     tbl_C2_project_member_association.C2_user_id =user_id
 AND
     tbl_C2_project_member_association.C2_project_id =project_id$$
+
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_member_associated_to_any_activity_for_project` (IN `project_id` VARCHAR(200), IN `added_user_id` VARCHAR(200))  NO SQL
+BEGIN
+	SELECT 
+		tbl_C2_activity.C2_activity_id
+	FROM 
+		tbl_C2_activity
+	LEFT JOIN
+		tbl_C2_activity_review
+	ON
+		tbl_C2_activity.C2_activity_id = tbl_C2_activity_review.C2_activity_id
+	WHERE 
+    (
+		tbl_C2_activity.C2_assignee_user_id = added_user_id
+        AND 
+		tbl_C2_activity.C2_project_id = project_id
+	)
+	OR
+    (
+		tbl_C2_activity_review.C2_reviewer_user_id = added_user_id
+		AND 
+		tbl_C2_activity.C2_project_id = project_id
+	);
+END$$
 
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_member_associated_to_any_task_for_project` (IN `project_id` VARCHAR(200), IN `user_id` VARCHAR(200))  NO SQL
 SELECT 
