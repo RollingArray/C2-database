@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: May 09, 2021 at 03:31 PM
+-- Generation Time: May 10, 2021 at 03:05 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -107,7 +107,11 @@ SELECT
     C2_crud_activity AS crudActivity,
     C2_crud_comment AS crudComment,
     C2_crud_reviewer AS crudReviewer,
-    C2_crud_review AS crudReview
+    C2_crud_review AS crudReview,
+    C2_view_credibility AS viewCredibility,
+    C2_view_sprint AS viewSprint,
+    C2_view_sprint AS viewGoal,
+    C2_view_activity AS viewActivity
 FROM 
     tbl_C2_project_member_type
 LEFT JOIN
