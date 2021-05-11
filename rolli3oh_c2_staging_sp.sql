@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: May 10, 2021 at 03:05 PM
+-- Generation Time: May 11, 2021 at 04:32 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -308,6 +308,7 @@ BEGIN
         tbl_C2_activity.C2_activity_result_type AS activityResultType,
         tbl_C2_activity.C2_criteria_poor_value AS criteriaPoorValue,
         tbl_C2_activity.C2_criteria_outstanding_value AS criteriaOutstandingValue,
+        tbl_C2_activity.C2_characteristics_higher_better AS characteristicsHigherBetter,
 		DATE_FORMAT(tbl_C2_activity_review.C2_activity_review_created_on,'%D %b %Y %r') AS activityReviewCreatedOn,
 		DATE_FORMAT(tbl_C2_activity_review.C2_activity_review_updated_on,'%D %b %Y %r') AS activityReviewUpdatedOn
 	FROM 
@@ -431,7 +432,7 @@ CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_assignee_credibility
 	AND
 		tbl_C2_project_member_type.C2_project_member_type_id = project_member_type_id
 	ORDER BY
-		userCredibilityScore ASC;
+		userCredibilityScore DESC;
 END$$
 
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_goals` (IN `project_id` VARCHAR(200))  NO SQL

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: May 10, 2021 at 03:05 PM
+-- Generation Time: May 11, 2021 at 04:31 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -750,30 +750,6 @@ CREATE TABLE IF NOT EXISTS `tbl_C2_project_settings` (
   PRIMARY KEY (`C2_project_settings_id`),
   KEY `C2_project_id` (`C2_project_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Triggers `tbl_C2_project_settings`
---
-DROP TRIGGER IF EXISTS `tbl_C2_project_settings_AFTER_INSERT`;
-DELIMITER $$
-CREATE TRIGGER `tbl_C2_project_settings_AFTER_INSERT` AFTER INSERT ON `tbl_C2_project_settings` FOR EACH ROW BEGIN
-	DECLARE user_id VARCHAR(200);
-
-    SELECT C2_user_id INTO user_id  FROM tbl_C2_current_operation_user;
-    
-    INSERT INTO tbl_C2_log_book
-			SET 
-				C2_log_operation = 'CREATE',
-				C2_user_id = user_id,
-				C2_project_id = NEW.C2_project_id,
-				C2_log_module = 'PROJECT_SETTINGS',
-				C2_log_module_operation_id = NEW.C2_over_all_completion_status_id,
-                C2_log_on_field = 'OVER_ALL_COMPLETION_STATUS_ID',
-				C2_log_old_content = NEW.C2_over_all_completion_status_id,
-				C2_log_created_on = NOW(); 
-END
-$$
-DELIMITER ;
 
 -- --------------------------------------------------------
 
