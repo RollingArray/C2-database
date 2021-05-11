@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: May 11, 2021 at 04:32 PM
+-- Generation Time: May 11, 2021 at 04:42 PM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -18,6 +18,7 @@ DELIMITER $$
 --
 -- Procedures
 --
+DROP PROCEDURE IF EXISTS `proc_IF`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `proc_IF` (IN `segment` VARCHAR(200), IN `task_name` VARCHAR(200))  BEGIN
     IF segment != -1 THEN
         SELECT
@@ -44,6 +45,7 @@ CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `proc_IF` (IN `segment` VARCHAR(
     END IF;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_activate_user_account`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_activate_user_account` (IN `user_email` VARCHAR(200))  NO SQL
 UPDATE 
 tbl_C2_user
@@ -54,6 +56,7 @@ tbl_C2_user
 	WHERE 
 		C2_user_email = user_email$$
 
+DROP PROCEDURE IF EXISTS `sp_add_new_log_book_entry`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_add_new_log_book_entry` (IN `project_id` VARCHAR(200), IN `user_id` VARCHAR(200), IN `log_operation` VARCHAR(10), IN `log_module` VARCHAR(10), IN `module_operation_id` VARCHAR(200), IN `log_content` VARCHAR(10000))  NO SQL
 INSERT INTO 
                         tbl_C2_log_book 
@@ -77,6 +80,7 @@ INSERT INTO
                                 now()
                             )$$
 
+DROP PROCEDURE IF EXISTS `sp_attach_project_to_member`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_attach_project_to_member` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `added_user_id` VARCHAR(200), IN `project_user_type_id` VARCHAR(200))  NO SQL
 BEGIN
     /*current user	*/
@@ -98,6 +102,7 @@ BEGIN
             );
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_check_if_user_can_crud`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_check_if_user_can_crud` (IN `project_id` VARCHAR(200), IN `user_id` VARCHAR(200))  NO SQL
 SELECT 
     C2_crud_project AS crudProject,
@@ -123,6 +128,7 @@ WHERE
 AND
     tbl_C2_project_member_association.C2_user_id = user_id$$
 
+DROP PROCEDURE IF EXISTS `sp_delete_activity`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_delete_activity` (IN `user_id` VARCHAR(200), IN `activity_id` VARCHAR(200), IN `project_id` VARCHAR(200))  NO SQL
 BEGIN
 	/*current user	*/
@@ -135,6 +141,7 @@ BEGIN
 		C2_activity_id = activity_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_delete_activity_reviewer`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_delete_activity_reviewer` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `activity_review_id` VARCHAR(200))  NO SQL
 BEGIN
     /*current user	*/
@@ -147,6 +154,7 @@ BEGIN
 		C2_activity_review_id = activity_review_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_delete_comment`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_delete_comment` (IN `user_id` VARCHAR(200), IN `comment_id` VARCHAR(200), IN `project_id` VARCHAR(200))  NO SQL
 BEGIN
 	/*current user	*/
@@ -159,6 +167,7 @@ BEGIN
 		C2_comment_id = comment_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_delete_goal`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_delete_goal` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `goal_id` VARCHAR(200), IN `goal_name` VARCHAR(200))  NO SQL
 BEGIN
 /*current user	*/
@@ -171,6 +180,7 @@ BEGIN
         C2_goal_id = goal_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_delete_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_delete_project` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `project_name` VARCHAR(200))  NO SQL
 BEGIN
 	/*current user	*/
@@ -182,6 +192,7 @@ BEGIN
 			C2_project_id = project_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_delete_project_member`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_delete_project_member` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `added_user_id` VARCHAR(200))  NO SQL
 BEGIN
 /*current user	*/
@@ -195,6 +206,7 @@ DELETE
                             C2_user_id = added_user_id;
                             END$$
 
+DROP PROCEDURE IF EXISTS `sp_delete_sprint`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_delete_sprint` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200))  NO SQL
 BEGIN
 /*current user	*/
@@ -206,6 +218,7 @@ BEGIN
 		C2_sprint_id = sprint_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_delete_user_story`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_delete_user_story` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `theme_id` VARCHAR(200), IN `user_story_id` VARCHAR(200), IN `user_story_name` VARCHAR(200))  NO SQL
 BEGIN
 /*current user	*/
@@ -218,6 +231,7 @@ DELETE
                                 
                                 END$$
 
+DROP PROCEDURE IF EXISTS `sp_generate_user_password_reset_Code`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_generate_user_password_reset_Code` (IN `user_password_reset_code` VARCHAR(200), IN `user_email` VARCHAR(200))  NO SQL
 UPDATE 
 	tbl_C2_user
@@ -227,6 +241,7 @@ UPDATE
 		WHERE 
 			C2_user_email = user_email$$
 
+DROP PROCEDURE IF EXISTS `sp_get_activity_assignee`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_activity_assignee` (IN `user_id` VARCHAR(200), IN `activity_id` VARCHAR(200))  NO SQL
 BEGIN
 	/*current user	*/
@@ -241,6 +256,7 @@ BEGIN
 		tbl_C2_activity.C2_activity_id = activity_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_activity_details`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_activity_details` (IN `activity_id` VARCHAR(200))  NO SQL
 BEGIN
 	SELECT
@@ -280,6 +296,7 @@ BEGIN
 		tbl_C2_activity.C2_activity_id = activity_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_activity_performance_calculation_facts`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_activity_performance_calculation_facts` (IN `activity_id` VARCHAR(200))  NO SQL
 BEGIN
 	SELECT
@@ -293,6 +310,7 @@ BEGIN
 		tbl_C2_activity.C2_activity_id = activity_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_activity_review_details`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_activity_review_details` (IN `activity_id` VARCHAR(200))  NO SQL
 BEGIN
 	SELECT
@@ -325,6 +343,7 @@ BEGIN
 		tbl_C2_activity_review.C2_activity_id = activity_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_access_privilege_details`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_access_privilege_details` ()  NO SQL
 SELECT 
                             tbl_C2_project_member_type.C2_project_member_type_id AS userTypeId,
@@ -349,6 +368,7 @@ SELECT
                         FROM 
                             tbl_C2_project_member_type$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_activities_for_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_activities_for_project` (IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `goal_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200))  NO SQL
 BEGIN
 	SELECT
@@ -394,6 +414,7 @@ BEGIN
 		tbl_C2_activity.C2_assignee_user_id = assignee_user_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_activity_performance_for_assignee`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_activity_performance_for_assignee` (IN `assignee_user_id` VARCHAR(200))  NO SQL
 BEGIN
     SELECT
@@ -406,6 +427,7 @@ BEGIN
 		tbl_C2_activity.C2_assignee_user_id = assignee_user_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_assignee_credibility_index`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_assignee_credibility_index` (IN `project_id` VARCHAR(200), IN `project_member_type_id` VARCHAR(200))  BEGIN
 	SELECT
 		tbl_C2_project_member_association.C2_user_id AS userId,
@@ -435,6 +457,7 @@ CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_assignee_credibility
 		userCredibilityScore DESC;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_goals`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_goals` (IN `project_id` VARCHAR(200))  NO SQL
 BEGIN
     SELECT 
@@ -449,6 +472,7 @@ BEGIN
         C2_goal_created_on DESC;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_measurement_criteria_for_project_sprint_userstory`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_measurement_criteria_for_project_sprint_userstory` (IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `user_story_id` VARCHAR(200))  NO SQL
 BEGIN
     SELECT 
@@ -495,6 +519,7 @@ BEGIN
 		tbl_C2_task_type_measurement_criteria.C2_user_story_id = user_story_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_projects_for_user`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_projects_for_user` (IN `user_id` VARCHAR(200))  NO SQL
 SELECT
     tbl_C2_project.C2_project_id AS projectId,
@@ -512,6 +537,7 @@ ON
 WHERE 
     tbl_C2_project_member_association.C2_user_id = user_id$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_project_settings`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_project_settings` (IN `project_id` VARCHAR(200))  NO SQL
 SELECT 
                             tbl_C2_project_settings.C2_project_id AS projectId,
@@ -527,6 +553,7 @@ SELECT
                         WHERE
                             tbl_C2_project_settings.C2_project_id = project_id$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_project_users`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_project_users` (IN `project_id` VARCHAR(200))  BEGIN
 	SELECT
 		tbl_C2_project_member_association.C2_user_id AS userId,
@@ -551,6 +578,7 @@ CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_project_users` (IN `
 		tbl_C2_project_member_association.C2_project_id = project_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_project_users_by_type`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_project_users_by_type` (IN `project_id` VARCHAR(200), IN `project_member_type_id` VARCHAR(200))  BEGIN
 	SELECT
 		tbl_C2_project_member_association.C2_user_id AS userId,
@@ -577,6 +605,7 @@ CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_project_users_by_typ
 		tbl_C2_project_member_type.C2_project_member_type_id = project_member_type_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_reviews_for_activity`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_reviews_for_activity` (IN `activity_id` VARCHAR(200))  NO SQL
 BEGIN
 	SELECT
@@ -587,6 +616,7 @@ BEGIN
 		tbl_C2_activity_review.C2_activity_id = activity_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_reviews_for_assignee_for_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_reviews_for_assignee_for_project` (IN `project_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200))  NO SQL
 BEGIN
 	SELECT
@@ -611,6 +641,7 @@ BEGIN
 		tbl_C2_activity.C2_project_id = project_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_sprints`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_sprints` (IN `project_id` VARCHAR(200))  NO SQL
 SELECT 
                             tbl_C2_sprint.C2_sprint_id AS sprintId,
@@ -625,6 +656,7 @@ SELECT
                         ORDER BY 
                             C2_sprint_created_on DESC$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_sprints_by_created_asc`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_sprints_by_created_asc` (IN `project_id` VARCHAR(200))  NO SQL
 SELECT 
                             tbl_C2_sprint.C2_sprint_id AS sprintId,
@@ -639,6 +671,7 @@ SELECT
                         ORDER BY 
                             C2_sprint_created_on ASC$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_sprints_for_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_sprints_for_project` (IN `project_id` VARCHAR(200))  NO SQL
 SELECT 
                 tbl_C2_sprint.C2_project_id AS projectId,
@@ -659,6 +692,7 @@ SELECT
                 tbl_C2_sprint.C2_sprint_name != 'No Sprint'
                 ORDER BY C2_sprint_created_on DESC$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_task_reviewers_for_task_sprint`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_task_reviewers_for_task_sprint` (IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `task_id` VARCHAR(200), IN `user_story_id` VARCHAR(200), IN `matrix_user_id` VARCHAR(200))  NO SQL
 SELECT 
 	DISTINCT tbl_C2_task_review.C2_task_review_id AS taskReviewId,
@@ -706,6 +740,7 @@ AND
 AND
 	tbl_C2_task_type_measurement_criteria.C2_user_story_id = user_story_id$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_task_type_measurement_criteria_for_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_task_type_measurement_criteria_for_project` (IN `project_id` VARCHAR(200))  NO SQL
 BEGIN
     SELECT 
@@ -748,6 +783,7 @@ BEGIN
         tbl_C2_task_type_measurement_criteria.C2_project_id = project_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_users`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_users` (IN `project_id` VARCHAR(200))  NO SQL
 SELECT 
                             tbl_C2_user.C2_user_id AS userId, 
@@ -770,6 +806,7 @@ SELECT
                         WHERE 
                             tbl_C2_project_member_association.C2_project_id = project_id$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_users_for_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_users_for_project` (IN `project_id` VARCHAR(200))  NO SQL
 SELECT
                 tbl_C2_user.C2_user_id AS userId,
@@ -791,6 +828,7 @@ SELECT
             WHERE
                 tbl_C2_project_member_association.C2_project_id = project_id$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_users_in_domain`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_users_in_domain` (IN `domain_id` VARCHAR(200))  NO SQL
 SELECT 
                             tbl_C2_user.C2_user_id AS userId, 
@@ -807,6 +845,7 @@ SELECT
                         WHERE 
                             tbl_C2_domain.C2_domain_id = domain_id$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_user_performance_stories_for_user_project_sprint`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_user_performance_stories_for_user_project_sprint` (IN `project_id` VARCHAR(200), IN `matrix_user_id` VARCHAR(200), IN `sprint_id` VARCHAR(200))  NO SQL
 BEGIN
     SELECT 
@@ -847,6 +886,7 @@ BEGIN
 		tbl_C2_user_performance_matrix.C2_matrix_user_id = matrix_user_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_all_user_story_for_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_user_story_for_project` (IN `project_id` VARCHAR(200))  BEGIN
 	SELECT 
 		C2_project_id AS projectId,
@@ -859,6 +899,7 @@ CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_all_user_story_for_proje
 		C2_project_id = project_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_assignee_credibility_score`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_assignee_credibility_score` (IN `project_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200))  BEGIN
 	SELECT
 		tbl_C2_project_member_association.C2_user_id AS userId,
@@ -879,6 +920,7 @@ CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_assignee_credibility_sco
 		tbl_C2_project_member_association.C2_user_id = assignee_user_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_basic_project_details`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_basic_project_details` (IN `project_id` VARCHAR(200))  NO SQL
 SELECT 
     C2_project_id AS projectId,
@@ -889,11 +931,13 @@ FROM
 WHERE 
     C2_project_id = project_id$$
 
+DROP PROCEDURE IF EXISTS `sp_get_current_operation_user`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_current_operation_user` (OUT `user_id` VARCHAR(200))  NO SQL
 BEGIN
       SELECT C2_user_id FROM tbl_C2_current_operation_user;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_domain_id_by_user_id`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_domain_id_by_user_id` (IN `user_id` VARCHAR(200))  NO SQL
 SELECT 
     C2_domain_id AS domainId
@@ -906,6 +950,7 @@ ON
 WHERE 
     tbl_C2_user.C2_user_id = user_id$$
 
+DROP PROCEDURE IF EXISTS `sp_get_if_user_inactive`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_if_user_inactive` (IN `user_email` VARCHAR(200))  NO SQL
 SELECT 
                             C2_user_email
@@ -916,6 +961,7 @@ SELECT
                         AND
                             C2_user_status = 'INACTIVE'$$
 
+DROP PROCEDURE IF EXISTS `sp_get_log_book`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_log_book` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `log_book_id` INT(20))  NO SQL
 BEGIN
 SET @Query = '';
@@ -966,6 +1012,7 @@ DEALLOCATE PREPARE stmt;
 
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_member_count_for_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_member_count_for_project` (IN `project_id` VARCHAR(200))  NO SQL
 SELECT 
                             COUNT(C2_user_id) AS noOfMember
@@ -974,6 +1021,7 @@ SELECT
                         WHERE 
                             C2_project_id = project_id$$
 
+DROP PROCEDURE IF EXISTS `sp_get_my_activities_for_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_my_activities_for_project` (IN `project_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200))  NO SQL
 BEGIN
 	SELECT
@@ -998,6 +1046,7 @@ BEGIN
         activityCreatedOn ASC;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_my_reviews_for_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_my_reviews_for_project` (IN `project_id` VARCHAR(200), IN `reviewer_user_id` VARCHAR(200))  NO SQL
 BEGIN
 	SELECT
@@ -1026,6 +1075,7 @@ BEGIN
         activityCreatedOn ASC;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_no_sprint_id_for_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_no_sprint_id_for_project` (IN `project_id` VARCHAR(200))  NO SQL
 SELECT 
                             C2_sprint_id as sprintId
@@ -1034,6 +1084,7 @@ SELECT
                         WHERE 
                             C2_project_id = project_id$$
 
+DROP PROCEDURE IF EXISTS `sp_get_project_member_association`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_project_member_association` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200))  NO SQL
 SELECT 
                             tbl_C2_project_member_association.C2_user_id AS userId
@@ -1044,6 +1095,7 @@ SELECT
                         AND
                             tbl_C2_project_member_association.C2_user_id = user_id$$
 
+DROP PROCEDURE IF EXISTS `sp_get_project_name_by_project_id`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_project_name_by_project_id` (IN `project_id` VARCHAR(200))  NO SQL
 SELECT 
                             C2_project_name as projectName
@@ -1052,6 +1104,7 @@ SELECT
                         WHERE 
                             C2_project_id = project_id$$
 
+DROP PROCEDURE IF EXISTS `sp_get_sign_in_user`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_sign_in_user` (IN `user_email` VARCHAR(200))  NO SQL
 SELECT 
                             C2_user_id AS userId,
@@ -1063,6 +1116,7 @@ SELECT
                         AND
                             C2_user_status = 'ACTIVE'$$
 
+DROP PROCEDURE IF EXISTS `sp_get_sprints_between_dates`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_sprints_between_dates` (IN `project_id` VARCHAR(200), IN `start_date` VARCHAR(200), IN `end_date` VARCHAR(200))  NO SQL
 SELECT
                             tbl_C2_sprint.C2_project_id AS projectId,
@@ -1084,6 +1138,7 @@ SELECT
                         ORDER BY
                             tbl_C2_sprint.C2_sprint_created_on DESC$$
 
+DROP PROCEDURE IF EXISTS `sp_get_sprint_count_for_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_sprint_count_for_project` (IN `project_id` VARCHAR(200))  NO SQL
 SELECT 
                             COUNT(C2_sprint_id) AS noOfSprint
@@ -1094,6 +1149,7 @@ SELECT
                         AND
                             C2_sprint_name != 'No Sprint'$$
 
+DROP PROCEDURE IF EXISTS `sp_get_sprint_name_by_sprint_id`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_sprint_name_by_sprint_id` (IN `operation_id` VARCHAR(200))  NO SQL
 BEGIN
     SELECT 
@@ -1104,6 +1160,7 @@ BEGIN
         C2_sprint_id = operation_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_user_activity_weight_for_sprint`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_user_activity_weight_for_sprint` (IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200))  NO SQL
 BEGIN
 		SELECT 
@@ -1118,6 +1175,7 @@ BEGIN
 			tbl_C2_activity.C2_assignee_user_id = assignee_user_id;
     END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_user_details_by_email`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_user_details_by_email` (IN `user_email` VARCHAR(200))  NO SQL
 SELECT
                             tbl_C2_user.C2_user_id AS userId,  
@@ -1131,6 +1189,7 @@ SELECT
                         WHERE 
                             tbl_C2_user.C2_user_email = user_email$$
 
+DROP PROCEDURE IF EXISTS `sp_get_user_details_by_id`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_user_details_by_id` (IN `user_id` VARCHAR(200))  NO SQL
 SELECT
                             tbl_C2_user.C2_user_id AS userId,  
@@ -1144,6 +1203,7 @@ SELECT
                         WHERE 
                             tbl_C2_user.C2_user_id = user_id$$
 
+DROP PROCEDURE IF EXISTS `sp_get_user_details_by_search_text`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_user_details_by_search_text` (IN `user_id` VARCHAR(200), IN `search_key` VARCHAR(200))  BEGIN  
    set @sql = concat("
    SELECT
@@ -1173,6 +1233,7 @@ CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_user_details_by_search_t
     EXECUTE stmt;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_user_domain_details`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_user_domain_details` (IN `user_id` VARCHAR(200))  NO SQL
 SELECT 
                             tbl_C2_user.C2_user_domain AS userDomainName,
@@ -1191,6 +1252,7 @@ SELECT
                         WHERE 
                             tbl_C2_user.C2_user_id = user_id$$
 
+DROP PROCEDURE IF EXISTS `sp_get_user_name_by_user_id`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_user_name_by_user_id` (IN `operation_id` VARCHAR(200))  NO SQL
 BEGIN
     SELECT 
@@ -1201,6 +1263,7 @@ BEGIN
         C2_user_id = operation_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_if_activity_already_created_for_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_activity_already_created_for_project` (IN `activity_name` VARCHAR(400), IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200))  NO SQL
 SELECT 
     C2_activity_id AS activityId
@@ -1215,6 +1278,7 @@ AND
 AND 
     tbl_C2_activity.C2_activity_name = activity_name$$
 
+DROP PROCEDURE IF EXISTS `sp_if_activity_already_locked`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_activity_already_locked` (IN `activity_id` VARCHAR(400))  NO SQL
 SELECT 
     C2_activity_locked AS activity_locked
@@ -1225,6 +1289,7 @@ WHERE
 AND
 	tbl_C2_activity.C2_activity_locked = 1$$
 
+DROP PROCEDURE IF EXISTS `sp_if_activity_present_for_goal`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_activity_present_for_goal` (IN `goal_id` VARCHAR(200))  NO SQL
 SELECT 
 	C2_activity_id AS activityId 
@@ -1233,6 +1298,7 @@ FROM
 WHERE 
 	C2_goal_id = goal_id$$
 
+DROP PROCEDURE IF EXISTS `sp_if_activity_present_for_sprint`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_activity_present_for_sprint` (IN `sprint_id` VARCHAR(200))  NO SQL
 SELECT 
 	C2_activity_id AS activityId 
@@ -1241,6 +1307,7 @@ FROM
 WHERE 
 	C2_sprint_id = sprint_id$$
 
+DROP PROCEDURE IF EXISTS `sp_if_added_reviewer_already_same_in_activity`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_added_reviewer_already_same_in_activity` (IN `activity_id` VARCHAR(200), IN `reviewer_user_id` VARCHAR(200))  NO SQL
 BEGIN
     SELECT 
@@ -1253,6 +1320,7 @@ BEGIN
         tbl_C2_activity_review.C2_reviewer_user_id = reviewer_user_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_if_domain_already_exist`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_domain_already_exist` (IN `user_domain` VARCHAR(200))  NO SQL
 SELECT 
                             C2_domain_id AS domainId
@@ -1261,6 +1329,7 @@ SELECT
                         WHERE 
                              C2_domain_name = user_domain$$
 
+DROP PROCEDURE IF EXISTS `sp_if_existing_user`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_existing_user` (IN `user_email` VARCHAR(200))  NO SQL
 SELECT 
                             C2_user_id
@@ -1269,6 +1338,7 @@ SELECT
                         WHERE 
                             C2_user_email = user_email$$
 
+DROP PROCEDURE IF EXISTS `sp_if_goal_already_created_for_same_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_goal_already_created_for_same_project` (IN `goal_name` VARCHAR(200), IN `project_id` VARCHAR(200))  NO SQL
 BEGIN
     SELECT 
@@ -1281,6 +1351,7 @@ BEGIN
         tbl_C2_goal.C2_project_id = project_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_if_measurement_criteria_already_added_to_same_task_type`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_measurement_criteria_already_added_to_same_task_type` (IN `project_id` VARCHAR(200), IN `measurement_purpose` VARCHAR(400))  NO SQL
 SELECT 
     C2_task_type_id AS taskTypeId
@@ -1291,6 +1362,7 @@ WHERE
 AND 
     tbl_C2_task_type_measurement_criteria.C2_project_id = project_id$$
 
+DROP PROCEDURE IF EXISTS `sp_if_member_already_same_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_member_already_same_project` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200))  NO SQL
 SELECT 
     C2_user_id as userId
@@ -1301,6 +1373,7 @@ WHERE
 AND
     tbl_C2_project_member_association.C2_project_id =project_id$$
 
+DROP PROCEDURE IF EXISTS `sp_if_member_associated_to_any_activity_for_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_member_associated_to_any_activity_for_project` (IN `project_id` VARCHAR(200), IN `added_user_id` VARCHAR(200))  NO SQL
 BEGIN
 	SELECT 
@@ -1325,6 +1398,7 @@ BEGIN
 	);
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_if_member_associated_to_any_task_for_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_member_associated_to_any_task_for_project` (IN `project_id` VARCHAR(200), IN `user_id` VARCHAR(200))  NO SQL
 SELECT 
                             tbl_C2_task.C2_task_assigned_user_id
@@ -1343,6 +1417,7 @@ SELECT
                         AND
                             tbl_C2_task.C2_task_assigned_user_id = user_id$$
 
+DROP PROCEDURE IF EXISTS `sp_if_password_reset_code_exist`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_password_reset_code_exist` (IN `user_email` VARCHAR(200), IN `user_password_reset_code` VARCHAR(200))  NO SQL
 SELECT 
                             C2_user_email
@@ -1353,6 +1428,7 @@ SELECT
                         AND
                             C2_user_password_reset_code = user_password_reset_code$$
 
+DROP PROCEDURE IF EXISTS `sp_if_performance_matrix_already_same_user`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_performance_matrix_already_same_user` (IN `project_id` VARCHAR(200), IN `matrix_user_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `user_story_id` VARCHAR(200))  NO SQL
 SELECT 
     C2_user_performance_matrix_id AS C2_user_performance_matrix_id
@@ -1367,6 +1443,7 @@ AND
 AND 
     tbl_C2_user_performance_matrix.C2_user_story_id = user_story_id$$
 
+DROP PROCEDURE IF EXISTS `sp_if_project_already_exist`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_project_already_exist` (IN `project_name` VARCHAR(200))  NO SQL
 SELECT 
     tbl_C2_project.C2_project_name
@@ -1375,6 +1452,7 @@ FROM
 WHERE 
     tbl_C2_project.C2_project_name = project_name$$
 
+DROP PROCEDURE IF EXISTS `sp_if_reviewer_already_reviewed_activity`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_reviewer_already_reviewed_activity` (IN `activity_id` VARCHAR(200), IN `reviewer_user_id` VARCHAR(200))  NO SQL
 BEGIN
     SELECT 
@@ -1387,6 +1465,7 @@ BEGIN
         tbl_C2_activity_review.C2_reviewer_user_id = reviewer_user_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_if_sprint_already_created_for_same_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_sprint_already_created_for_same_project` (IN `sprint_name` VARCHAR(200), IN `project_id` VARCHAR(200))  NO SQL
 SELECT 
     tbl_C2_sprint.C2_sprint_id
@@ -1397,6 +1476,7 @@ WHERE
 AND 
     tbl_C2_sprint.C2_project_id = project_id$$
 
+DROP PROCEDURE IF EXISTS `sp_if_user_identified`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_user_identified` (IN `user_email` VARCHAR(200), IN `user_security_answer_1` VARCHAR(200), IN `user_security_answer_2` VARCHAR(200))  NO SQL
 SELECT 
                             C2_user_id AS userId
@@ -1409,6 +1489,7 @@ SELECT
                         AND
                             C2_user_security_answer_2 = user_security_answer_2$$
 
+DROP PROCEDURE IF EXISTS `sp_if_user_story_already_created_for_same_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_user_story_already_created_for_same_project` (IN `user_story_name` VARCHAR(200), IN `project_id` VARCHAR(200))  NO SQL
 SELECT 
     C2_user_story_id AS userStoryId
@@ -1419,6 +1500,7 @@ WHERE
 AND 
     tbl_C2_user_story.C2_user_story_name = user_story_name$$
 
+DROP PROCEDURE IF EXISTS `sp_if_user_story_has_items`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_user_story_has_items` (IN `user_story_id` VARCHAR(200))  NO SQL
 SELECT 
                             C2_task_id as taskId
@@ -1431,6 +1513,7 @@ SELECT
                         WHERE 
                             tbl_C2_user_story.C2_user_story_id = user_story_id$$
 
+DROP PROCEDURE IF EXISTS `sp_if_verification_code_valid`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_verification_code_valid` (IN `user_email` VARCHAR(200), IN `user_verification_code` VARCHAR(200))  NO SQL
 SELECT 
                             C2_user_email
@@ -1441,6 +1524,7 @@ SELECT
                         AND 
                             C2_user_verification_code = user_verification_code$$
 
+DROP PROCEDURE IF EXISTS `sp_insert_activity`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_activity` (IN `user_id` VARCHAR(200), IN `activity_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `goal_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200), IN `activity_name` VARCHAR(400), IN `activity_weight` INT(11), IN `activity_measurement_type` VARCHAR(100), IN `activity_result_type` VARCHAR(100), IN `criteria_poor_value` INT(11), IN `criteria_improvement_value` INT(11), IN `criteria_expectation_value` INT(11), IN `criteria_exceed_value` INT(11), IN `criteria_outstanding_value` INT(11), IN `characteristics_higher_better` INT(11))  NO SQL
 BEGIN
     /*current user	*/
@@ -1487,6 +1571,7 @@ BEGIN
         );
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_insert_activity_reviewer`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_activity_reviewer` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `activity_id` VARCHAR(200), IN `activity_review_id` VARCHAR(200), IN `reviewer_user_id` VARCHAR(200))  NO SQL
 BEGIN
 	SET @Query = '",activity_review_id,"';
@@ -1514,6 +1599,7 @@ BEGIN
         );
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_insert_comment`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_comment` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `activity_id` VARCHAR(200), IN `comment_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200), IN `comment_description` VARCHAR(1000), IN `claimed_result_value` INT(11))  NO SQL
 BEGIN
     /*current user	*/
@@ -1542,6 +1628,7 @@ BEGIN
         );
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_insert_new_domain`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_new_domain` (IN `domain_id` VARCHAR(200), IN `user_domain` VARCHAR(200), IN `domain_controller_user_id` VARCHAR(200), IN `domain_status` VARCHAR(200))  NO SQL
 INSERT INTO 
                         tbl_C2_domain 
@@ -1560,6 +1647,7 @@ INSERT INTO
                                 now()
                             )$$
 
+DROP PROCEDURE IF EXISTS `sp_insert_new_goal`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_new_goal` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `goal_id` VARCHAR(200), IN `goal_name` VARCHAR(200), IN `goal_description` VARCHAR(200))  NO SQL
 BEGIN
 /*current user	*/
@@ -1583,6 +1671,7 @@ INSERT INTO
         );
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_insert_new_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_new_project` (IN `user_id` VARCHAR(200), IN `project_name` VARCHAR(200), IN `project_id` VARCHAR(200), IN `project_description` VARCHAR(200))  NO SQL
 BEGIN
 	/*current user	*/
@@ -1604,6 +1693,7 @@ BEGIN
 			);			
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_insert_new_session`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_new_session` (IN `user_id` VARCHAR(200), IN `user_platform` VARCHAR(200), IN `user_ip` VARCHAR(200), IN `user_login_type` VARCHAR(200))  NO SQL
 BEGIN
 INSERT INTO 
@@ -1625,6 +1715,7 @@ INSERT INTO
 		);
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_insert_new_sprint`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_new_sprint` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `sprint_name` VARCHAR(200), IN `sprint_start_date` VARCHAR(200), IN `sprint_end_date` VARCHAR(200), IN `sprint_status` VARCHAR(200))  NO SQL
 BEGIN
 /*current user	*/
@@ -1652,6 +1743,7 @@ INSERT INTO
         );
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_insert_new_task`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_new_task` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `user_story_id` VARCHAR(200), IN `task_type_id` VARCHAR(200), IN `task_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200), IN `task_name` VARCHAR(200), IN `task_key_completion_indicator` VARCHAR(1000))  NO SQL
 BEGIN
 	/*current user	*/
@@ -1683,6 +1775,7 @@ BEGIN
 			);
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_insert_new_task_review`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_new_task_review` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `task_id` VARCHAR(200), IN `task_review_id` VARCHAR(200), IN `reviewer_user_id` VARCHAR(200), IN `achieved_result_value` INT(11), IN `reviewer_comment` VARCHAR(1000))  NO SQL
 BEGIN
 	/*current user	*/
@@ -1712,6 +1805,7 @@ BEGIN
 			);
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_insert_new_user`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_new_user` (IN `user_id` VARCHAR(200), IN `user_first_name` VARCHAR(200), IN `user_last_name` VARCHAR(200), IN `user_password` VARCHAR(200), IN `user_email` VARCHAR(200), IN `user_status` VARCHAR(200), IN `user_security_answer_1` VARCHAR(200), IN `user_security_answer_2` VARCHAR(200), IN `user_verification_code` VARCHAR(200))  NO SQL
 INSERT INTO 
 tbl_C2_user 
@@ -1741,6 +1835,7 @@ values
 	now()
 )$$
 
+DROP PROCEDURE IF EXISTS `sp_insert_new_user_story`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_new_user_story` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `user_story_id` VARCHAR(200), IN `user_story_name` VARCHAR(200), IN `user_story_description` VARCHAR(400))  NO SQL
 BEGIN
     /*current user	*/
@@ -1764,6 +1859,7 @@ BEGIN
         );
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_insert_project_settings`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_project_settings` (IN `project_id` VARCHAR(200), IN `user_id` VARCHAR(200), IN `over_all_completion_status_id` INT(20))  NO SQL
 BEGIN
 	/*current user	*/
@@ -1784,6 +1880,7 @@ BEGIN
 		);
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_insert_user_performance_matrix`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_user_performance_matrix` (IN `user_performance_matrix_id` VARCHAR(200), IN `user_id` VARCHAR(200), IN `matrix_user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `user_story_id` VARCHAR(200), IN `weight` INT(11))  NO SQL
 BEGIN
     /*current user	*/
@@ -1812,6 +1909,7 @@ BEGIN
         );
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_is_sprintis_active`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_is_sprintis_active` (IN `sprint_id` VARCHAR(100))  NO SQL
 SELECT 
                 C2_sprint_id AS sprintId
@@ -1830,6 +1928,7 @@ SELECT
                     C2_sprint_status = "NO_SPRINT_STATUS"
                 )$$
 
+DROP PROCEDURE IF EXISTS `sp_lock_activity`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_lock_activity` (IN `user_id` VARCHAR(200), IN `activity_id` VARCHAR(200), IN `activity_locked` INT(11))  NO SQL
 BEGIN
 	/*current user	*/
@@ -1844,6 +1943,7 @@ BEGIN
 		C2_activity_id = activity_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_pull_all_tasks_for_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_pull_all_tasks_for_project` (IN `project_id` VARCHAR(200))  NO SQL
 SELECT
                             DISTINCT tbl_C2_task_sprint_association.C2_task_id AS taskId,
@@ -1977,6 +2077,7 @@ SELECT
                         ORDER BY
                          	taskLastUpdated DESC$$
 
+DROP PROCEDURE IF EXISTS `sp_pull_all_tasks_for_project_for_sprint`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_pull_all_tasks_for_project_for_sprint` (IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200))  NO SQL
 SELECT
                             tbl_C2_task.C2_segment AS segment,
@@ -2052,6 +2153,7 @@ SELECT
                         ORDER BY
                             taskLastUpdated DESC$$
 
+DROP PROCEDURE IF EXISTS `sp_pull_all_tasks_for_user_for_sprint`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_pull_all_tasks_for_user_for_sprint` (IN `sprint_id` VARCHAR(200), IN `user_id` VARCHAR(200))  NO SQL
 SELECT
                             tbl_C2_task.C2_segment AS segment,
@@ -2127,6 +2229,7 @@ SELECT
                         ORDER BY
                             taskLastUpdated DESC$$
 
+DROP PROCEDURE IF EXISTS `sp_regenerate_user_account_activation_code`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_regenerate_user_account_activation_code` (IN `user_verification_code` VARCHAR(200), IN `user_email` VARCHAR(200))  NO SQL
 UPDATE 
 	tbl_C2_user
@@ -2136,6 +2239,7 @@ UPDATE
 		WHERE 
 			C2_user_email = user_email$$
 
+DROP PROCEDURE IF EXISTS `sp_updated_user_profile`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_updated_user_profile` (IN `user_id` VARCHAR(200), IN `user_email` VARCHAR(200), IN `user_first_name` VARCHAR(200), IN `user_last_name` VARCHAR(200), IN `user_security_answer_1` VARCHAR(200), IN `user_security_answer_2` VARCHAR(200), IN `user_designation` VARCHAR(200), IN `user_password` VARCHAR(200))  NO SQL
 UPDATE  
                         tbl_C2_user 
@@ -2150,6 +2254,7 @@ UPDATE
                         WHERE 
                             C2_user_id = user_id$$
 
+DROP PROCEDURE IF EXISTS `sp_update_activity`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_activity` (IN `user_id` VARCHAR(200), IN `activity_id` VARCHAR(200), IN `activity_name` VARCHAR(400), IN `activity_weight` INT(11), IN `activity_measurement_type` VARCHAR(100), IN `activity_result_type` VARCHAR(100), IN `criteria_poor_value` INT(11), IN `criteria_improvement_value` INT(11), IN `criteria_expectation_value` INT(11), IN `criteria_exceed_value` INT(11), IN `criteria_outstanding_value` INT(11), IN `characteristics_higher_better` INT(11))  NO SQL
 BEGIN
 	/*current user	*/
@@ -2173,6 +2278,7 @@ BEGIN
 		tbl_C2_activity.C2_activity_id = activity_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_update_activity_review`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_activity_review` (IN `user_id` VARCHAR(200), IN `activity_review_id` VARCHAR(200), IN `achieved_result_value` INT(11), IN `performance_value` DOUBLE(10,2), IN `weighted_performance_value` DOUBLE(10,2), IN `reviewer_comment` VARCHAR(1000))  NO SQL
 BEGIN
 	/*current user	*/
@@ -2190,6 +2296,7 @@ BEGIN
 		tbl_C2_activity_review.C2_activity_review_id = activity_review_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_update_activity_review_performance`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_activity_review_performance` (IN `user_id` VARCHAR(200), IN `activity_id` VARCHAR(200), IN `activity_review_performance` DOUBLE(10,2))  NO SQL
 BEGIN
 	/*current user	*/
@@ -2204,6 +2311,7 @@ BEGIN
 		tbl_C2_activity.C2_activity_id = activity_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_update_comment`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_comment` (IN `user_id` VARCHAR(200), IN `comment_id` VARCHAR(200), IN `comment_description` VARCHAR(1000), IN `claimed_result_value` INT(11))  NO SQL
 BEGIN
     /*current user	*/
@@ -2219,12 +2327,14 @@ BEGIN
         C2_comment_id = comment_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_update_current_operation_user`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_current_operation_user` (IN `user_id` VARCHAR(200))  NO SQL
 BEGIN
       UPDATE tbl_C2_current_operation_user
       SET C2_user_id = user_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_update_goal`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_goal` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `goal_id` VARCHAR(200), IN `goal_name` VARCHAR(200), IN `goal_description` VARCHAR(200))  NO SQL
 BEGIN
 	/*current user	*/
@@ -2239,6 +2349,7 @@ BEGIN
 		C2_goal_id = goal_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_update_password`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_password` (IN `user_password` VARCHAR(200), IN `user_email` VARCHAR(200))  NO SQL
 UPDATE 
                         tbl_C2_user
@@ -2249,6 +2360,7 @@ UPDATE
                             WHERE 
                                 C2_user_email = user_email$$
 
+DROP PROCEDURE IF EXISTS `sp_update_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_project` (IN `user_id` VARCHAR(200), IN `project_name` VARCHAR(200), IN `project_description` VARCHAR(400), IN `project_id` VARCHAR(200))  NO SQL
 BEGIN
 	/*current user	*/
@@ -2265,6 +2377,7 @@ BEGIN
 				C2_project_id = project_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_update_project_member_access`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_project_member_access` (IN `user_id` VARCHAR(200), IN `added_user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `project_user_type_id` VARCHAR(200))  NO SQL
 BEGIN
 /*current user	*/
@@ -2280,6 +2393,7 @@ UPDATE
                                 C2_project_id = project_id;
                                 END$$
 
+DROP PROCEDURE IF EXISTS `sp_update_project_settings`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_project_settings` (IN `project_id` VARCHAR(200), IN `user_id` VARCHAR(200), IN `over_all_completion_status_id` VARCHAR(200))  NO SQL
 BEGIN
 	/*current user	*/
@@ -2294,6 +2408,7 @@ BEGIN
 				C2_project_id = project_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_update_sprint`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_sprint` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `sprint_name` VARCHAR(200), IN `sprint_start_date` VARCHAR(200), IN `sprint_end_date` VARCHAR(200), IN `sprint_status` VARCHAR(200))  NO SQL
 BEGIN
 	/*current user	*/
@@ -2310,6 +2425,7 @@ BEGIN
 		C2_sprint_id = sprint_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_update_task`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_task` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `task_id` VARCHAR(200), IN `task_name` VARCHAR(200), IN `task_description` VARCHAR(400), IN `task_key_completion_indicator` VARCHAR(1000))  NO SQL
 BEGIN
 	/*current user	*/
@@ -2326,6 +2442,7 @@ BEGIN
 		C2_task_id = task_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_update_task_review`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_task_review` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `task_review_id` VARCHAR(200), IN `reviewer_user_id` VARCHAR(200), IN `achieved_result_value` INT(11), IN `reviewer_comment` VARCHAR(1000))  NO SQL
 BEGIN
 	/*current user	*/
@@ -2341,6 +2458,7 @@ BEGIN
 		C2_task_review_id = task_review_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_update_task_sprint_association`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_task_sprint_association` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `task_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `task_estimation` VARCHAR(200), IN `task_story_point` VARCHAR(200), IN `task_status_id` VARCHAR(200))  NO SQL
 BEGIN
 	/*current user	*/
@@ -2358,6 +2476,7 @@ BEGIN
         C2_task_id = task_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_update_user_credibility_score`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_user_credibility_score` (IN `user_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `user_credibility_score` DOUBLE(10,2))  NO SQL
 BEGIN
 	/*current user	*/
@@ -2374,6 +2493,7 @@ BEGIN
 		C2_project_id = project_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_update_user_story`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_user_story` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `user_story_id` VARCHAR(200), IN `user_story_name` VARCHAR(200), IN `user_story_description` VARCHAR(400))  NO SQL
 BEGIN
     /*current user	*/
