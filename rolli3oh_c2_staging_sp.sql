@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: May 11, 2021 at 04:42 PM
+-- Generation Time: May 12, 2021 at 02:31 AM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -1025,12 +1025,21 @@ DROP PROCEDURE IF EXISTS `sp_get_my_activities_for_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_my_activities_for_project` (IN `project_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200))  NO SQL
 BEGIN
 	SELECT
-		tbl_C2_activity.C2_activity_id AS activityId,
+		tbl_C2_activity.C2_assignee_user_id AS assigneeUserId,
+        tbl_C2_activity.C2_activity_id AS activityId,
         tbl_C2_activity.C2_activity_name AS activityName,
 		tbl_C2_activity.C2_project_id AS projectId,
-		tbl_C2_activity.C2_assignee_user_id AS assigneeUserId,
-        tbl_C2_user.C2_user_first_name AS assigneeUserFirstName,
+        tbl_C2_activity.C2_sprint_id AS sprintId,
+        tbl_C2_sprint.C2_sprint_name AS sprintName,
+		tbl_C2_user.C2_user_first_name AS assigneeUserFirstName,
         tbl_C2_user.C2_user_last_name AS assigneeUserLastName,
+        tbl_C2_activity_comment.C2_claimed_result_value  AS claimedResultValue,
+        tbl_C2_activity.C2_activity_weight AS activityWeight,
+        tbl_C2_activity.C2_activity_measurement_type AS activityMeasurementType,
+        tbl_C2_activity.C2_activity_result_type AS activityResultType,
+        tbl_C2_activity.C2_criteria_poor_value AS criteriaPoorValue,
+        tbl_C2_activity.C2_criteria_outstanding_value AS criteriaOutstandingValue,
+        tbl_C2_activity.C2_characteristics_higher_better AS characteristicsHigherBetter,
         DATE_FORMAT(tbl_C2_activity.C2_activity_created_on,'%D %b %Y %r') AS activityCreatedOn
 	FROM 
 		tbl_C2_activity
@@ -1038,6 +1047,14 @@ BEGIN
 		tbl_C2_user
 	ON
 		tbl_C2_activity.C2_assignee_user_id = tbl_C2_user.C2_user_id
+    LEFT JOIN
+		tbl_C2_activity_comment
+	ON
+		tbl_C2_activity.C2_activity_id = tbl_C2_activity_comment.C2_activity_id
+	LEFT JOIN
+		tbl_C2_sprint
+	ON
+		tbl_C2_activity.C2_sprint_id = tbl_C2_sprint.C2_sprint_id
 	WHERE 
 		tbl_C2_activity.C2_project_id = project_id
 	AND
@@ -1054,8 +1071,18 @@ BEGIN
         tbl_C2_activity_review.C2_activity_id AS activityId,
         tbl_C2_activity.C2_activity_name AS activityName,
 		tbl_C2_activity.C2_project_id AS projectId,
+        tbl_C2_activity.C2_sprint_id AS sprintId,
+        tbl_C2_sprint.C2_sprint_name AS sprintName,
 		tbl_C2_user.C2_user_first_name AS reviewerUserFirstName,
         tbl_C2_user.C2_user_last_name AS reviewerUserLastName,
+        tbl_C2_activity_comment.C2_claimed_result_value  AS claimedResultValue,
+        tbl_C2_activity.C2_activity_weight AS activityWeight,
+        tbl_C2_activity.C2_activity_measurement_type AS activityMeasurementType,
+        tbl_C2_activity.C2_activity_result_type AS activityResultType,
+        tbl_C2_activity.C2_criteria_poor_value AS criteriaPoorValue,
+        tbl_C2_activity.C2_criteria_outstanding_value AS criteriaOutstandingValue,
+        tbl_C2_activity.C2_characteristics_higher_better AS characteristicsHigherBetter,
+        
         DATE_FORMAT(tbl_C2_activity.C2_activity_created_on,'%D %b %Y %r') AS activityCreatedOn
 	FROM 
 		tbl_C2_activity_review
@@ -1067,6 +1094,14 @@ BEGIN
         tbl_C2_activity
     ON
         tbl_C2_activity_review.C2_activity_id = tbl_C2_activity.C2_activity_id
+	LEFT JOIN
+		tbl_C2_activity_comment
+	ON
+		tbl_C2_activity_review.C2_activity_id = tbl_C2_activity_comment.C2_activity_id
+	LEFT JOIN
+		tbl_C2_sprint
+	ON
+		tbl_C2_activity.C2_sprint_id = tbl_C2_sprint.C2_sprint_id
 	WHERE 
 		tbl_C2_activity_review.C2_project_id = project_id
 	AND
