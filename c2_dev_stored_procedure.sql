@@ -1,18 +1,23 @@
--- phpMyAdmin SQL Dump
--- version 4.9.3
--- https://www.phpmyadmin.net/
---
--- Host: localhost:8889
--- Generation Time: May 12, 2021 at 02:31 AM
--- Server version: 5.7.26
--- PHP Version: 7.4.2
+/**
+ * © Rolling Array https://rollingarray.co.in/
+ *
+ * long description for the file
+ *
+ * @summary C2 procedures
+ * @author code@rollingarray.co.in
+ *
+ * Created at     : 2021-05-16 14:32:19 
+ * Last modified  : 2021-05-16 14:33:08
+ */
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
 --
--- Database: `rolli3oh_c2`
+-- Database: `c2_dev`
 --
+USE `c2_dev`;
+
 
 DELIMITER $$
 --
