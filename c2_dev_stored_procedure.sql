@@ -23,32 +23,6 @@ DELIMITER $$
 --
 -- Procedures
 --
-DROP PROCEDURE IF EXISTS `proc_IF`$$
-CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `proc_IF` (IN `segment` VARCHAR(200), IN `task_name` VARCHAR(200))  BEGIN
-    IF segment != -1 THEN
-        SELECT
-                            tbl_C2_task.C2_segment AS segment,
-                            tbl_C2_task.C2_task_id AS taskId,
-                            tbl_C2_task.C2_task_name AS taskName,
-                            tbl_C2_task.C2_task_end_date AS taskEndDate
-                            FROM
-                            tbl_C2_task
-                            WHERE
-                            tbl_C2_task.C2_segment = segment
-                            AND
-                            C2_task_name = task_name;
-    ELSE
-        SELECT
-                            tbl_C2_task.C2_segment AS segment,
-                            tbl_C2_task.C2_task_id AS taskId,
-                            tbl_C2_task.C2_task_name AS taskName,
-                            tbl_C2_task.C2_task_end_date AS taskEndDate
-                            FROM
-                            tbl_C2_task
-                            WHERE
-                            C2_task_name = task_name;
-    END IF;
-END$$
 
 DROP PROCEDURE IF EXISTS `sp_activate_user_account`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_activate_user_account` (IN `user_email` VARCHAR(200))  NO SQL
@@ -1302,6 +1276,17 @@ BEGIN
     WHERE 
         C2_user_id = operation_id;
 END$$
+
+DROP PROCEDURE IF EXISTS `sp_if_active_sprint_available`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_if_active_sprint_available` (IN `sprint_status` VARCHAR(200), IN `project_id` VARCHAR(200))  NO SQL
+SELECT 
+	tbl_C2_sprint.C2_sprint_id
+FROM 
+	tbl_C2_sprint
+WHERE 
+	tbl_C2_sprint.C2_sprint_status = sprint_status
+AND 
+	tbl_C2_sprint.C2_project_id = project_id$$
 
 DROP PROCEDURE IF EXISTS `sp_if_activity_already_created_for_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_activity_already_created_for_project` (IN `activity_name` VARCHAR(400), IN `project_id` VARCHAR(200), IN `sprint_id` VARCHAR(200), IN `assignee_user_id` VARCHAR(200))  NO SQL
