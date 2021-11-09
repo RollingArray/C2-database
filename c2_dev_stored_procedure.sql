@@ -7,7 +7,7 @@
  * @author code@rollingarray.co.in
  *
  * Created at     : 2021-05-16 14:32:19 
- * Last modified  : 2021-05-16 14:33:08
+ * Last modified  : 2021-11-01 14:33:08
  */
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -23,7 +23,6 @@ DELIMITER $$
 --
 -- Procedures
 --
-
 DROP PROCEDURE IF EXISTS `sp_activate_user_account`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_activate_user_account` (IN `user_email` VARCHAR(200))  NO SQL
 UPDATE 
@@ -1195,9 +1194,7 @@ SELECT
                             tbl_C2_user.C2_user_id AS userId,  
                             tbl_C2_user.C2_user_first_name AS userFirstName, 
                             tbl_C2_user.C2_user_last_name AS userLastName,
-                            tbl_C2_user.C2_user_email AS userEmail,
-                            tbl_C2_user.C2_user_security_answer_1 AS userSecurityAnswer1,
-                            tbl_C2_user.C2_user_security_answer_2 AS userSecurityAnswer2
+                            tbl_C2_user.C2_user_email AS userEmail
                         FROM 
                             tbl_C2_user  
                         WHERE 
@@ -1209,9 +1206,7 @@ SELECT
                             tbl_C2_user.C2_user_id AS userId,  
                             tbl_C2_user.C2_user_first_name AS userFirstName, 
                             tbl_C2_user.C2_user_last_name AS userLastName,
-                            tbl_C2_user.C2_user_email AS userEmail,
-                            tbl_C2_user.C2_user_security_answer_1 AS userSecurityAnswer1,
-                            tbl_C2_user.C2_user_security_answer_2 AS userSecurityAnswer2
+                            tbl_C2_user.C2_user_email AS userEmail
                         FROM 
                             tbl_C2_user  
                         WHERE 
@@ -1672,6 +1667,35 @@ INSERT INTO
                                 now()
                             )$$
 
+DROP PROCEDURE IF EXISTS `sp_insert_new_email_track`$$
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_new_email_track` (IN `email_track_id` VARCHAR(200), IN `user_email` VARCHAR(200), IN `email_subject` VARCHAR(200), IN `email_content` VARCHAR(1000))  BEGIN  
+    
+   set @sql = concat("
+   INSERT INTO 
+	`tbl_C2_email_track` 
+    (
+        `C2_email_track_id`,
+        `C2_user_email`,
+        `C2_email_subject`,
+        `C2_email_content`,
+        `C2_email_status`,
+        `C2_email_created_on`
+    )
+    VALUES (
+		'" , email_track_id , "',
+        '" , user_email , "',
+        '" , email_subject , "',
+        '" , email_content , "',
+        'SENT',
+		now())
+	");
+	
+    /*INSERT INTO tbl_C2_sp_log VALUES(@sql);*/
+    
+    PREPARE stmt FROM @sql;
+    EXECUTE stmt;
+END$$
+
 DROP PROCEDURE IF EXISTS `sp_insert_new_goal`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_new_goal` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200), IN `goal_id` VARCHAR(200), IN `goal_name` VARCHAR(200), IN `goal_description` VARCHAR(200))  NO SQL
 BEGIN
@@ -1831,18 +1855,15 @@ BEGIN
 END$$
 
 DROP PROCEDURE IF EXISTS `sp_insert_new_user`$$
-CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_new_user` (IN `user_id` VARCHAR(200), IN `user_first_name` VARCHAR(200), IN `user_last_name` VARCHAR(200), IN `user_password` VARCHAR(200), IN `user_email` VARCHAR(200), IN `user_status` VARCHAR(200), IN `user_security_answer_1` VARCHAR(200), IN `user_security_answer_2` VARCHAR(200), IN `user_verification_code` VARCHAR(200))  NO SQL
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_insert_new_user` (IN `user_id` VARCHAR(200), IN `user_first_name` VARCHAR(200), IN `user_last_name` VARCHAR(200), IN `user_email` VARCHAR(200), IN `user_status` VARCHAR(200), IN `user_verification_code` VARCHAR(200))  NO SQL
 INSERT INTO 
 tbl_C2_user 
 (
 	C2_user_id,
 	C2_user_first_name, 
 	C2_user_last_name, 
-	C2_user_password, 
 	C2_user_email, 
 	C2_user_status,
-	C2_user_security_answer_1,
-	C2_user_security_answer_2,
 	C2_user_verification_code,
 	C2_user_created_at
 ) 
@@ -1851,11 +1872,8 @@ values
 	user_id,
 	user_first_name,
 	user_last_name,
-	user_password,
 	user_email,
 	user_status,
-	user_security_answer_1,
-	user_security_answer_2,
 	user_verification_code,
 	now()
 )$$
@@ -2265,19 +2283,16 @@ UPDATE
 			C2_user_email = user_email$$
 
 DROP PROCEDURE IF EXISTS `sp_updated_user_profile`$$
-CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_updated_user_profile` (IN `user_id` VARCHAR(200), IN `user_email` VARCHAR(200), IN `user_first_name` VARCHAR(200), IN `user_last_name` VARCHAR(200), IN `user_security_answer_1` VARCHAR(200), IN `user_security_answer_2` VARCHAR(200), IN `user_designation` VARCHAR(200), IN `user_password` VARCHAR(200))  NO SQL
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_updated_user_profile` (IN `user_id` VARCHAR(200), IN `user_email` VARCHAR(200), IN `user_first_name` VARCHAR(200), IN `user_last_name` VARCHAR(200))  NO SQL
 UPDATE  
-                        tbl_C2_user 
-                            SET
-                                C2_user_first_name = user_first_name,
-                                C2_user_last_name = user_last_name,
-                                C2_user_designation = user_designation,
-                                C2_user_security_answer_1 = user_security_answer_1,
-                                C2_user_security_answer_2 = user_security_answer_1,
-                                C2_user_password = user_password,
-                                C2_user_updated_at = now()
-                        WHERE 
-                            C2_user_id = user_id$$
+tbl_C2_user 
+	SET
+		C2_user_first_name = user_first_name,
+		C2_user_last_name = user_last_name,
+		C2_user_email = user_email,
+		C2_user_updated_at = now()
+	WHERE 
+		C2_user_id = user_id$$
 
 DROP PROCEDURE IF EXISTS `sp_update_activity`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_activity` (IN `user_id` VARCHAR(200), IN `activity_id` VARCHAR(200), IN `activity_name` VARCHAR(400), IN `activity_weight` INT(11), IN `activity_measurement_type` VARCHAR(100), IN `activity_result_type` VARCHAR(100), IN `criteria_poor_value` INT(11), IN `criteria_improvement_value` INT(11), IN `criteria_expectation_value` INT(11), IN `criteria_exceed_value` INT(11), IN `criteria_outstanding_value` INT(11), IN `characteristics_higher_better` INT(11))  NO SQL
@@ -2357,6 +2372,24 @@ CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_current_operation_use
 BEGIN
       UPDATE tbl_C2_current_operation_user
       SET C2_user_id = user_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `sp_update_email_track`$$
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_update_email_track` (IN `email_track_id` VARCHAR(200))  BEGIN      
+   set @sql = concat("
+   UPDATE 
+   		`tbl_C2_email_track`
+   			SET
+   				`C2_email_status`  = 'OPEN',
+   				`C2_email_updated_on` = now()
+   			WHERE 
+   				`C2_email_track_id` = '" , email_track_id , "'
+	");
+	
+    /*INSERT INTO tbl_C2_sp_log VALUES(@sql);*/
+    
+    PREPARE stmt FROM @sql;
+    EXECUTE stmt;
 END$$
 
 DROP PROCEDURE IF EXISTS `sp_update_goal`$$
