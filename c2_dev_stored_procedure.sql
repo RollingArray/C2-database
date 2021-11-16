@@ -1,14 +1,11 @@
-/**
- * © Rolling Array https://rollingarray.co.in/
- *
- * long description for the file
- *
- * @summary C2 procedures
- * @author code@rollingarray.co.in
- *
- * Created at     : 2021-05-16 14:32:19 
- * Last modified  : 2021-11-01 14:33:08
- */
+-- phpMyAdmin SQL Dump
+-- version 4.9.3
+-- https://www.phpmyadmin.net/
+--
+-- Host: localhost:8889
+-- Generation Time: Nov 15, 2021 at 03:28 PM
+-- Server version: 5.7.26
+-- PHP Version: 7.4.2
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -16,8 +13,8 @@ SET time_zone = "+00:00";
 --
 -- Database: `c2_dev`
 --
+CREATE DATABASE IF NOT EXISTS `c2_dev` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 USE `c2_dev`;
-
 
 DELIMITER $$
 --
@@ -91,6 +88,7 @@ SELECT
     C2_crud_comment AS crudComment,
     C2_crud_reviewer AS crudReviewer,
     C2_crud_review AS crudReview,
+    C2_crud_review_lock AS crudReviewLock,
     C2_view_credibility AS viewCredibility,
     C2_view_sprint AS viewSprint,
     C2_view_sprint AS viewGoal,
@@ -296,6 +294,7 @@ BEGIN
 		tbl_C2_activity_review.C2_project_id AS projectId,
         tbl_C2_activity_review.C2_activity_review_id AS activityReviewId,
         tbl_C2_activity_review.C2_reviewer_user_id AS reviewerUserId,
+        tbl_C2_activity_review.C2_review_lock AS reviewLock,
         tbl_C2_user.C2_user_first_name AS reviewerUserFirstName,
         tbl_C2_user.C2_user_last_name AS reviewerUserLastName,
         tbl_C2_activity_review.C2_achieved_result_value AS achievedResultValue,
@@ -319,6 +318,78 @@ BEGIN
 		tbl_C2_activity_review.C2_activity_id = tbl_C2_activity.C2_activity_id
 	WHERE 
 		tbl_C2_activity_review.C2_activity_id = activity_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `sp_get_activity_review_details_for_assignee`$$
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_activity_review_details_for_assignee` (IN `user_id` VARCHAR(200), IN `activity_id` VARCHAR(200))  NO SQL
+BEGIN
+	SELECT
+		tbl_C2_activity_review.C2_activity_id AS activityId,
+		tbl_C2_activity_review.C2_project_id AS projectId,
+        tbl_C2_activity_review.C2_activity_review_id AS activityReviewId,
+        tbl_C2_activity_review.C2_reviewer_user_id AS reviewerUserId,
+        tbl_C2_activity_review.C2_review_lock AS reviewLock,
+        tbl_C2_user.C2_user_first_name AS reviewerUserFirstName,
+        tbl_C2_user.C2_user_last_name AS reviewerUserLastName,
+        tbl_C2_activity_review.C2_achieved_result_value AS achievedResultValue,
+        tbl_C2_activity_review.C2_reviewer_comment AS reviewerComment,
+        tbl_C2_activity.C2_activity_measurement_type AS activityMeasurementType,
+        tbl_C2_activity.C2_activity_result_type AS activityResultType,
+        tbl_C2_activity.C2_criteria_poor_value AS criteriaPoorValue,
+        tbl_C2_activity.C2_criteria_outstanding_value AS criteriaOutstandingValue,
+        tbl_C2_activity.C2_characteristics_higher_better AS characteristicsHigherBetter,
+		DATE_FORMAT(tbl_C2_activity_review.C2_activity_review_created_on,'%D %b %Y %r') AS activityReviewCreatedOn,
+		DATE_FORMAT(tbl_C2_activity_review.C2_activity_review_updated_on,'%D %b %Y %r') AS activityReviewUpdatedOn
+	FROM 
+		tbl_C2_activity_review
+	LEFT JOIN 
+		tbl_C2_user
+	ON
+		tbl_C2_activity_review.C2_reviewer_user_id = tbl_C2_user.C2_user_id
+	LEFT JOIN
+		tbl_C2_activity
+	ON
+		tbl_C2_activity_review.C2_activity_id = tbl_C2_activity.C2_activity_id
+	WHERE 
+		tbl_C2_activity_review.C2_activity_id = activity_id
+	AND
+		tbl_C2_activity_review.C2_review_lock = 1;
+END$$
+
+DROP PROCEDURE IF EXISTS `sp_get_activity_review_details_for_reviewer`$$
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_activity_review_details_for_reviewer` (IN `user_id` VARCHAR(200), IN `activity_id` VARCHAR(200))  NO SQL
+BEGIN
+	SELECT
+		tbl_C2_activity_review.C2_activity_id AS activityId,
+		tbl_C2_activity_review.C2_project_id AS projectId,
+        tbl_C2_activity_review.C2_activity_review_id AS activityReviewId,
+        tbl_C2_activity_review.C2_reviewer_user_id AS reviewerUserId,
+        tbl_C2_activity_review.C2_review_lock AS reviewLock,
+        tbl_C2_user.C2_user_first_name AS reviewerUserFirstName,
+        tbl_C2_user.C2_user_last_name AS reviewerUserLastName,
+        tbl_C2_activity_review.C2_achieved_result_value AS achievedResultValue,
+        tbl_C2_activity_review.C2_reviewer_comment AS reviewerComment,
+        tbl_C2_activity.C2_activity_measurement_type AS activityMeasurementType,
+        tbl_C2_activity.C2_activity_result_type AS activityResultType,
+        tbl_C2_activity.C2_criteria_poor_value AS criteriaPoorValue,
+        tbl_C2_activity.C2_criteria_outstanding_value AS criteriaOutstandingValue,
+        tbl_C2_activity.C2_characteristics_higher_better AS characteristicsHigherBetter,
+		DATE_FORMAT(tbl_C2_activity_review.C2_activity_review_created_on,'%D %b %Y %r') AS activityReviewCreatedOn,
+		DATE_FORMAT(tbl_C2_activity_review.C2_activity_review_updated_on,'%D %b %Y %r') AS activityReviewUpdatedOn
+	FROM 
+		tbl_C2_activity_review
+	LEFT JOIN 
+		tbl_C2_user
+	ON
+		tbl_C2_activity_review.C2_reviewer_user_id = tbl_C2_user.C2_user_id
+	LEFT JOIN
+		tbl_C2_activity
+	ON
+		tbl_C2_activity_review.C2_activity_id = tbl_C2_activity.C2_activity_id
+	WHERE 
+		tbl_C2_activity_review.C2_activity_id = activity_id
+	AND
+		tbl_C2_activity_review.C2_reviewer_user_id = user_id;
 END$$
 
 DROP PROCEDURE IF EXISTS `sp_get_all_access_privilege_details`$$
@@ -1272,8 +1343,26 @@ BEGIN
         C2_user_id = operation_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_get_user_type_for_user_and_project_id`$$
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_get_user_type_for_user_and_project_id` (IN `user_id` VARCHAR(200), IN `project_id` VARCHAR(200))  NO SQL
+BEGIN
+    SELECT 
+        tbl_C2_project_member_association.C2_project_user_type_id AS userTypeId,
+        tbl_C2_project_member_type.C2_project_member_type_name AS userTypeName
+    FROM 
+        tbl_C2_project_member_association
+    LEFT JOIN
+        tbl_C2_project_member_type
+    ON
+        tbl_C2_project_member_association.C2_project_user_type_id = tbl_C2_project_member_type.C2_project_member_type_id
+    WHERE 
+        tbl_C2_project_member_association.C2_user_id = user_id
+    AND
+        tbl_C2_project_member_association.C2_project_id = project_id;
+END$$
+
 DROP PROCEDURE IF EXISTS `sp_if_active_sprint_available`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_if_active_sprint_available` (IN `sprint_status` VARCHAR(200), IN `project_id` VARCHAR(200))  NO SQL
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_active_sprint_available` (IN `sprint_status` VARCHAR(200), IN `project_id` VARCHAR(200))  NO SQL
 SELECT 
 	tbl_C2_sprint.C2_sprint_id
 FROM 
@@ -1986,6 +2075,21 @@ BEGIN
 		C2_activity_id = activity_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `sp_lock_activity_review`$$
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_lock_activity_review` (IN `user_id` VARCHAR(200), IN `activity_review_id` VARCHAR(200))  NO SQL
+BEGIN
+	/*current user	*/
+	CALL sp_update_current_operation_user(user_id);
+    
+    UPDATE
+		tbl_C2_activity_review 
+	SET
+		tbl_C2_activity_review.C2_review_lock = 0,
+        tbl_C2_activity_review.C2_activity_review_updated_on = now()
+	WHERE
+		tbl_C2_activity_review.C2_activity_review_id = activity_review_id;
+END$$
+
 DROP PROCEDURE IF EXISTS `sp_pull_all_tasks_for_project`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_pull_all_tasks_for_project` (IN `project_id` VARCHAR(200))  NO SQL
 SELECT
@@ -2281,6 +2385,21 @@ UPDATE
 			C2_user_updated_at = now()
 		WHERE 
 			C2_user_email = user_email$$
+
+DROP PROCEDURE IF EXISTS `sp_unlock_activity_review`$$
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_unlock_activity_review` (IN `user_id` VARCHAR(200), IN `activity_review_id` VARCHAR(200))  NO SQL
+BEGIN
+	/*current user	*/
+	CALL sp_update_current_operation_user(user_id);
+    
+    UPDATE
+		tbl_C2_activity_review 
+	SET
+		tbl_C2_activity_review.C2_review_lock = 1,
+        tbl_C2_activity_review.C2_activity_review_updated_on = now()
+	WHERE
+		tbl_C2_activity_review.C2_activity_review_id = activity_review_id;
+END$$
 
 DROP PROCEDURE IF EXISTS `sp_updated_user_profile`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_updated_user_profile` (IN `user_id` VARCHAR(200), IN `user_email` VARCHAR(200), IN `user_first_name` VARCHAR(200), IN `user_last_name` VARCHAR(200))  NO SQL
