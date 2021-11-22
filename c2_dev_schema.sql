@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: Nov 15, 2021 at 03:32 PM
+-- Generation Time: Nov 22, 2021 at 11:55 AM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -11,7 +11,7 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
 --
--- Database: `rolli3oh_c2`
+-- Database: `c2_dev`
 --
 CREATE DATABASE IF NOT EXISTS `c2_dev` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 USE `c2_dev`;
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `tbl_C2_activity` (
   `C2_activity_achieved_fact` int(11) DEFAULT NULL,
   `C2_activity_review_performance` double(10,2) DEFAULT NULL,
   `C2_assignee_comment` varchar(1000) DEFAULT NULL,
-  `C2_activity_locked` int(11) DEFAULT '0',
+  `C2_activity_locked` tinyint(1) DEFAULT '1',
   `C2_activity_created_on` datetime DEFAULT NULL,
   `C2_activity_updated_on` datetime DEFAULT NULL,
   PRIMARY KEY (`C2_activity_id`),

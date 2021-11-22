@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: Nov 15, 2021 at 03:28 PM
+-- Generation Time: Nov 22, 2021 at 11:56 AM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -253,6 +253,7 @@ BEGIN
         tbl_C2_activity.C2_criteria_exceed_value AS criteriaExceedValue,
         tbl_C2_activity.C2_criteria_outstanding_value AS criteriaOutstandingValue,
         tbl_C2_activity.C2_characteristics_higher_better AS characteristicsHigherBetter,
+        tbl_C2_activity.C2_activity_locked AS activityLocked,
         tbl_C2_activity_comment.C2_comment_id AS commentId,
         tbl_C2_activity_comment.C2_comment_description AS commentDescription,
         tbl_C2_activity_comment.C2_claimed_result_value AS claimedResultValue,
@@ -438,6 +439,7 @@ BEGIN
         tbl_C2_activity.C2_criteria_exceed_value AS criteriaExceedValue,
         tbl_C2_activity.C2_criteria_outstanding_value AS criteriaOutstandingValue,
         tbl_C2_activity.C2_characteristics_higher_better AS characteristicsHigherBetter,
+        tbl_C2_activity.C2_activity_locked AS activityLocked,
         tbl_C2_activity_comment.C2_comment_id AS commentId,
         tbl_C2_activity_comment.C2_comment_description AS commentDescription,
         tbl_C2_activity_comment.C2_claimed_result_value AS claimedResultValue,
@@ -1396,7 +1398,7 @@ FROM
 WHERE 
     tbl_C2_activity.C2_activity_id = activity_id
 AND
-	tbl_C2_activity.C2_activity_locked = 1$$
+	tbl_C2_activity.C2_activity_locked = 0$$
 
 DROP PROCEDURE IF EXISTS `sp_if_activity_present_for_goal`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_if_activity_present_for_goal` (IN `goal_id` VARCHAR(200))  NO SQL
@@ -2061,7 +2063,7 @@ SELECT
                 )$$
 
 DROP PROCEDURE IF EXISTS `sp_lock_activity`$$
-CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_lock_activity` (IN `user_id` VARCHAR(200), IN `activity_id` VARCHAR(200), IN `activity_locked` INT(11))  NO SQL
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_lock_activity` (IN `user_id` VARCHAR(200), IN `activity_id` VARCHAR(200))  NO SQL
 BEGIN
 	/*current user	*/
 	CALL sp_update_current_operation_user(user_id);
@@ -2069,8 +2071,8 @@ BEGIN
     UPDATE
 		tbl_C2_activity 
 	SET
-		C2_activity_locked = activity_locked,
-        C2_activity_updated_at = now()
+		C2_activity_locked = 0,
+        C2_activity_updated_on = now()
 	WHERE
 		C2_activity_id = activity_id;
 END$$
@@ -2385,6 +2387,21 @@ UPDATE
 			C2_user_updated_at = now()
 		WHERE 
 			C2_user_email = user_email$$
+
+DROP PROCEDURE IF EXISTS `sp_unlock_activity`$$
+CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_unlock_activity` (IN `user_id` VARCHAR(200), IN `activity_id` VARCHAR(200))  NO SQL
+BEGIN
+	/*current user	*/
+	CALL sp_update_current_operation_user(user_id);
+    
+    UPDATE
+		tbl_C2_activity 
+	SET
+		C2_activity_locked = 1,
+        C2_activity_updated_on = now()
+	WHERE
+		C2_activity_id = activity_id;
+END$$
 
 DROP PROCEDURE IF EXISTS `sp_unlock_activity_review`$$
 CREATE DEFINER=`rolli3oh`@`localhost` PROCEDURE `sp_unlock_activity_review` (IN `user_id` VARCHAR(200), IN `activity_review_id` VARCHAR(200))  NO SQL
