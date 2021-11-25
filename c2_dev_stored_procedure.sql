@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: Nov 22, 2021 at 11:56 AM
+-- Generation Time: Nov 25, 2021 at 09:46 AM
 -- Server version: 5.7.26
 -- PHP Version: 7.4.2
 
@@ -239,10 +239,12 @@ BEGIN
 		tbl_C2_activity.C2_activity_id AS activityId,
 		tbl_C2_activity.C2_project_id AS projectId,
 		tbl_C2_activity.C2_sprint_id AS sprintId,
+        tbl_C2_sprint.C2_sprint_name AS sprintName,
         tbl_C2_activity.C2_assignee_user_id AS assigneeUserId,
         tbl_C2_user.C2_user_first_name AS assigneeUserFirstName,
         tbl_C2_user.C2_user_last_name AS assigneeUserLastName,
         tbl_C2_activity.C2_goal_id AS goalId,
+        tbl_C2_goal.C2_goal_name AS goalName,
         tbl_C2_activity.C2_activity_name AS activityName,
         tbl_C2_activity.C2_activity_weight AS activityWeight,
         tbl_C2_activity.C2_activity_measurement_type AS activityMeasurementType,
@@ -265,6 +267,14 @@ BEGIN
 		tbl_C2_activity_comment
 	ON
 		tbl_C2_activity.C2_activity_id = tbl_C2_activity_comment.C2_activity_id
+    LEFT JOIN
+		tbl_C2_goal
+	ON
+		tbl_C2_activity.C2_goal_id = tbl_C2_goal.C2_goal_id
+    LEFT JOIN
+		tbl_C2_sprint
+	ON
+		tbl_C2_activity.C2_sprint_id = tbl_C2_sprint.C2_sprint_id
 	LEFT JOIN 
 		tbl_C2_user
 	ON
